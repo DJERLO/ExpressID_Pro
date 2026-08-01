@@ -261,7 +261,7 @@ function selectPreset(k) {
     renderPackageButtons(null);
     draw()
 }
-function renderButtons(active) {
+function renderButtons(active = "2x2") {
     [...$('presetGrid').children].forEach(b => b.classList.toggle('active', b.textContent === active));
     [...$('paperGrid').children].forEach(b => b.classList.toggle('active', b.textContent === state.paper));
 }
