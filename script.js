@@ -1,4 +1,4 @@
-import { removeBackground } from 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/+esm';
+
 
 /**
  * Removes the background from an image using the Imgly Background Removal API.
@@ -6,6 +6,7 @@ import { removeBackground } from 'https://cdn.jsdelivr.net/npm/@imgly/background
  * @returns {Promise<string|null>} - A promise that resolves to a blob URL of the processed image or null if an error occurs.
  */
 async function removePhotoBackground(imageSource) {
+  const { removeBackground } = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/+esm');
   try {
     const blob = await removeBackground(imageSource, {
       publicPath: 'https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/',
@@ -89,6 +90,50 @@ const $ = id => document.getElementById(id);
 function toIn(v, u) {
     v = +v || 0;
     return u === 'mm' ? v / 25.4 : u === 'cm' ? v / 2.54 : v
+}
+/**
+ * Network Status Handler
+ */
+function initNetworkListener() {
+    const modal = $('network-modal');
+    const msg = $('network-message');
+    const icon = $('network-icon');
+    const bgBtn = $('removeBgBtn');
+
+    function updateNetworkStatus(e) {
+        const isOnline = navigator.onLine;
+
+        // 1. Enable/Disable the Remove Background button
+        if (bgBtn) {
+            bgBtn.disabled = !isOnline;
+            bgBtn.title = isOnline ? '' : 'Internet connection required for background removal';
+        }
+
+        // 2. Trigger status modal only on active connection changes or when offline
+        if (!isOnline) {
+            modal.className = 'network-modal offline';
+            icon.textContent = '📡';
+            msg.textContent = 'You lost internet connection. Background removal requires an active network connection.';
+        } else if (e && e.type === 'online') {
+            modal.className = 'network-modal online';
+            icon.textContent = '⚡';
+            msg.textContent = 'You are back online!';
+
+            // Auto-hide the "Back Online" message after 3.5 seconds
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 3500);
+        }
+    }
+
+    // Bind browser native events
+    window.addEventListener('online', updateNetworkStatus);
+    window.addEventListener('offline', updateNetworkStatus);
+
+    // Initial check on boot
+    if (!navigator.onLine) {
+        updateNetworkStatus();
+    }
 }
 function init() {
     $('currentYear').textContent = new Date().getFullYear();
@@ -183,6 +228,7 @@ function init() {
     $('downloadPng').onclick = downloadPNG;
     $('downloadPdf').onclick = downloadPDF;
     $('printBtn').onclick = printCanvas;
+    initNetworkListener();
     setupUpload();
     setupIdCardPrint();
     initSignaturePad();
@@ -268,7 +314,11 @@ function setupUpload() {
 }
 
 async function handleRemoveBackground() {
-    // Determine the current image source
+    // Check if offline
+    if (!navigator.onLine) {
+        return alert('You are currently offline. Please reconnect to the internet to use AI background removal.');
+    }
+    // Determine the current image source (either from the cropper or the state)
     const currentSrc = $('cropImage')?.src || state.image;
 
     if (!currentSrc) {
@@ -1150,6 +1200,42 @@ function drawPhotoOverlays(ctx, photoX, photoY, photoWidth, photoHeight) {
         }
     }
 }
+const networkModal = document.getElementById('network-modal');
+const networkMessage = document.getElementById('network-message');
+const networkIcon = document.getElementById('network-icon');
+const networkCloseBtn = document.getElementById('network-close');
+const removeBgBtn = document.getElementById('removeBgBtn');
+networkCloseBtn.addEventListener('click', () => {
+  networkModal.classList.add('hidden');
+});
 
+function updateOnlineStatus() {
+  if (navigator.onLine) {
+    // Show back online state
+    networkModal.className = 'network-modal online';
+    networkIcon.textContent = '⚡';
+    networkMessage.textContent = 'You are back online!';
+    
+    // Auto-hide the "Back Online" banner after 3 seconds
+    setTimeout(() => {
+      networkModal.classList.add('hidden');
+    }, 3000);
+  } else {
+    // Show offline state
+    removeBgBtn.disabled = true; // Disable the remove background button when offline
+    networkModal.className = 'network-modal offline';
+    networkIcon.textContent = '📡';
+    networkMessage.textContent = 'You lost internet connection. Some Features may not work.';
+  }
+}
+
+// Listen for network change events
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+// Check initial status on load (only show if already offline)
+if (!navigator.onLine) {
+  updateOnlineStatus();
+}
 setupIdCardPrint();
 draw();

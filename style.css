@@ -91,6 +91,18 @@ button.active, .primary {
     box-shadow: 0 8px 24px rgba(79, 70, 229, 0.35);
 }
 
+button:disabled, .primary:disabled {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    color: var(--muted);
+    border-color: rgba(255, 255, 255, 0.05);
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+button:disabled, button:hover:disabled {
+    transform: none;
+}
+
 .full {
     width: 100%;
     margin-top: 12px
@@ -725,4 +737,41 @@ canvas {
     border-radius: 20px;
     font-size: 11px;
     color: var(--cyan);
+}
+
+.network-modal {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  padding: 12px 20px;
+  border-radius: 8px;
+  color: #fff;
+  font-family: sans-serif;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease-in-out;
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.network-modal.hidden {
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+}
+
+/* Status colors */
+.network-modal.offline {
+  background-color: #e74c3c; /* Red */
+}
+
+.network-modal.online {
+  background-color: #2ecc71; /* Green */
+}
+
+.network-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }

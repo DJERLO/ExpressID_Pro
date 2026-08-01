@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rush ID</title>
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+
+  <title>ExpressID Pro</title>
+
   <link rel="stylesheet" href="vendor/css/cropper.min.css" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -21,7 +24,7 @@
           </svg>
         </div>
         <div>
-          <h1>Rush ID</h1>
+          <h1>ExpressID Pro</h1>
           <p>Interactive 300 DPI print lab</p>
         </div>
       </div>
@@ -185,6 +188,14 @@
       <h3 id="idCropTitle">Crop ID side</h3>
       <div class="crop-box"><img id="idCropImage" alt="ID side crop"></div>
       <div class="idcard-actions"><button id="cancelIdCrop">Cancel</button><button id="saveIdCrop" class="primary">Save Crop</button></div>
+    </div>
+  </div>
+
+  <!-- Network Status Modal / Toast -->
+  <div id="network-modal" class="network-modal hidden">
+    <div class="network-content">
+      <span id="network-icon">⚠️</span>
+      <span id="network-message">You are currently offline. Background removal requires an active internet connection.</span>
     </div>
   </div>
 
