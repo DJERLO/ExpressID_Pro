@@ -21,6 +21,29 @@ async function removePhotoBackground(imageSource) {
 }
 
 const DPI = 300;
+const packages = {
+    "Package A": [
+        { w: 1, h: 1, unit: "inch", qty: 8, label: "1 x 1" },
+        { w: 2, h: 2, unit: "inch", qty: 2, label: "2 x 2" }
+    ],
+    "Package B": [
+        { w: 1, h: 1, unit: "inch", qty: 4, label: "1 x 1" },
+        { w: 2, h: 2, unit: "inch", qty: 4, label: "2 x 2" }
+    ],
+    "Package C": [
+        { w: 1, h: 1, unit: "inch", qty: 8, label: "1 x 1" },
+        { w: 2, h: 2, unit: "inch", qty: 3, label: "2 x 2" }
+    ],
+    "Package D": [
+        { w: 1, h: 1, unit: "inch", qty: 4, label: "1 x 1" },
+        { w: 2, h: 2, unit: "inch", qty: 2, label: "2 x 2" },
+        { w: 35, h: 45, unit: "mm", qty: 1, label: "Passport" }
+    ],
+    "Package E": [
+        { w: 1, h: 1, unit: "inch", qty: 8, label: "1 x 1" },
+        { w: 35, h: 45, unit: "mm", qty: 6, label: "Passport" }
+    ]
+};
 const presets = {
     "1x1": [1, 1, "inch", 8],
     "1.5x1.5": [1.5, 1.5, "inch", 6],
@@ -62,7 +85,7 @@ function toIn(v, u) {
     return u === 'mm' ? v / 25.4 : u === 'cm' ? v / 2.54 : v
 }
 function init() {
-
+    $('currentYear').textContent = new Date().getFullYear();
     $('removeBgBtn').onclick = handleRemoveBackground;
 
     document.getElementById('prevPage').onclick = () => {
@@ -84,6 +107,20 @@ function init() {
             }
             draw();
         });
+    });
+
+    Object.keys(packages).forEach(k => {
+        let b = document.createElement('button');
+        
+        // Summary subtext (e.g., "2x2 (2) + 1x1 (4)")
+        let desc = packages[k].map(i => `${i.label} (${i.qty})`).join(' + ');
+        
+        b.type = 'button';
+        b.dataset.packageKey = k;
+        b.innerHTML = `<b>${k}</b><br><small>${desc}</small>`;
+        b.onclick = () => selectPackage(k);
+        
+        $('packageGrid').appendChild(b);
     });
     Object.keys(presets).forEach(k => {
         let b = document.createElement('button');
@@ -168,11 +205,12 @@ function selectPreset(k) {
 
     renderSizeList();
     renderButtons(k);
+    renderPackageButtons(null);
     draw()
 }
 function renderButtons(active) {
     [...$('presetGrid').children].forEach(b => b.classList.toggle('active', b.textContent === active));
-    [...$('paperGrid').children].forEach(b => b.classList.toggle('active', b.textContent === state.paper))
+    [...$('paperGrid').children].forEach(b => b.classList.toggle('active', b.textContent === state.paper));
 }
 function addSize() {
     state.sizes.push({
@@ -945,5 +983,36 @@ function getCurrentAspectRatio() {
     let h = +$('photoHeight').value || 1;
     return w / h;
 }
+
+function selectPackage(pkgKey) {
+    let items = packages[pkgKey];
+    if (!items) return;
+
+    // Deep clone items into state.sizes
+    state.sizes = items.map(item => ({ ...item }));
+
+    // Set cropper aspect ratio based on the first item in the package
+    if (state.cropper && state.sizes.length > 0) {
+        let first = state.sizes[0];
+        let targetW = toIn(first.w, first.unit);
+        let targetH = toIn(first.h, first.unit);
+        state.cropper.setAspectRatio(targetW / targetH);
+    }
+
+    renderSizeList();
+    renderPackageButtons(pkgKey);
+    // De-highlight standard preset buttons (since a package is selected)
+    [...$('presetGrid').children].forEach(b => b.classList.remove('active'));
+    draw();
+}
+
+function renderPackageButtons(activeKey) {
+    const pkgGrid = $('packageGrid');
+    if (!pkgGrid) return;
+    [...pkgGrid.children].forEach(b => {
+        b.classList.toggle('active', b.dataset.packageKey === activeKey);
+    });
+}
+
 setupIdCardPrint();
 draw();

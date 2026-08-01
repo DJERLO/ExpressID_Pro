@@ -25,6 +25,7 @@
           <p>Interactive 300 DPI print lab</p>
         </div>
       </div>
+
       <section class="card">
         <h2>Upload Photo</h2>
         <label id="dropZone" class="drop-zone" tabindex="0">
@@ -46,10 +47,18 @@
             <input id="brightness" type="range" min="50" max="150" value="100"></label>
           <label class="range-label">Contrast <b id="contrastValue">100%</b>
             <input id="contrast" type="range" min="50" max="150" value="100"></label>
-        </section>
+      </section>
+      <section class="card">
+        <h2>Rush Packages</h2>
+        <div id="packageGrid" class="button-grid">
+          <!-- Package buttons will be dynamically rendered here -->
+        </div>
+      </section>
       <section class="card">
         <h2>Preset Sizes</h2>
-        <div id="presetGrid" class="button-grid"></div>
+        <div id="presetGrid" class="button-grid">
+          <!-- Preset size buttons will be generated here -->
+        </div>
       </section>
       <section class="card">
         <h2>Sizes & Quantity</h2>
@@ -134,7 +143,14 @@
       <div class="preview-stage">
         <canvas id="previewCanvas"></canvas>
       </div>
-      <footer class="powered">Powered By <strong>PAPAJEK</strong></footer>
+      <footer class="powered">
+        <div class="footer-content">
+          <p>© <span id="currentYear"></span> <strong>DJERLO</strong> · All Rights Reserved</p>
+          <div class="footer-links">
+            <span class="badge">v2.0 300 DPI Lab</span>
+          </div>
+        </div>
+      </footer>
     </main>
   </div>
 
