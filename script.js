@@ -447,6 +447,34 @@ function getCroppedCanvas() {
         imageSmoothingQuality: 'high'
     })
 }
+/**
+ * Draws an image into a destination rectangle on canvas with 'object-fit: cover' behavior.
+ * This prevents stretching when aspect ratios differ across package sizes.
+ */
+function drawImageCover(ctx, img, dx, dy, dw, dh) {
+    const imgWidth = img.width;
+    const imgHeight = img.height;
+    const imgAspect = imgWidth / imgHeight;
+    const boxAspect = dw / dh;
+
+    let sx, sy, sw, sh;
+
+    if (imgAspect > boxAspect) {
+        // Image is wider than destination box -> crop left/right edges
+        sh = imgHeight;
+        sw = imgHeight * boxAspect;
+        sx = (imgWidth - sw) / 2;
+        sy = 0;
+    } else {
+        // Image is taller than destination box -> crop top/bottom edges
+        sw = imgWidth;
+        sh = imgWidth / boxAspect;
+        sx = 0;
+        sy = (imgHeight - sh) / 2;
+    }
+
+    ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+}
 function draw() {
     const canvas = document.getElementById('previewCanvas');
     if (!canvas) return;
@@ -533,8 +561,7 @@ function draw() {
         }
         if (img) {
             ctx.filter = `brightness(${$('brightness').value}%) contrast(${$('contrast').value}%)`;
-            ctx.drawImage(img, it.x, it.y, it.w, it.h);
-            ctx.filter = 'none'
+            drawImageCover(ctx, img, it.x, it.y, it.w, it.h);
 
            // Draw ID card overlays if applicable
             if (!it.idCard && !it.idSide && !it.idPair) {
