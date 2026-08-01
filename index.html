@@ -121,6 +121,31 @@
         </div>
         
       </section>
+      <section class="card">
+      <h2>Name & Signature Label</h2>
+      
+      <!-- Text Label -->
+      <label>Full Name / Subtext
+        <input id="labelName" type="text" placeholder="e.g. JUAN DELA CRUZ" />
+      </label>
+      <div class="checks">
+        <label><input id="showNameOverlay" type="checkbox" checked> Overlay Name on Photo</label>
+      </div>
+
+      <hr style="border:0; border-top:1px solid var(--border); margin:12px 0;">
+
+      <!-- Signature Pad -->
+      <label>Digital Signature</label>
+      <div class="signature-wrap">
+        <canvas id="sigCanvas" width="280" height="100"></canvas>
+      </div>
+      <div class="toolbar" style="margin-top: 6px;">
+        <button id="clearSigBtn" class="secondary" type="button">Clear Signature</button>
+      </div>
+      <div class="checks">
+        <label><input id="showSigOverlay" type="checkbox" checked> Overlay Signature</label>
+      </div>
+    </section>
     </aside>
 
     <!-- Workspace -->

@@ -64,6 +64,12 @@ const papers = {
     "Legal (8.5 x 14)": [8.5, 14],
     Custom: [8.5, 11]
 };
+
+// Signature Pad Setup
+let sigCanvas, sigCtx;
+let isSigning = false;
+
+
 let state = {
     paper: "5R (5 x 7)", // Default paper size
     sizes: [{
@@ -179,6 +185,7 @@ function init() {
     $('printBtn').onclick = printCanvas;
     setupUpload();
     setupIdCardPrint();
+    initSignaturePad();
     renderButtons();
     renderSizeList();
     draw()
@@ -528,6 +535,11 @@ function draw() {
             ctx.filter = `brightness(${$('brightness').value}%) contrast(${$('contrast').value}%)`;
             ctx.drawImage(img, it.x, it.y, it.w, it.h);
             ctx.filter = 'none'
+
+           // Draw ID card overlays if applicable
+            if (!it.idCard && !it.idSide && !it.idPair) {
+                drawPhotoOverlays(ctx, it.x, it.y, it.w, it.h);
+            }
         } else {
             ctx.fillStyle = '#7d7a75';
             ctx.textAlign = 'center';
@@ -1012,6 +1024,104 @@ function renderPackageButtons(activeKey) {
     [...pkgGrid.children].forEach(b => {
         b.classList.toggle('active', b.dataset.packageKey === activeKey);
     });
+}
+function initSignaturePad() {
+    sigCanvas = $('sigCanvas');
+    if (!sigCanvas) return;
+    
+    // Set explicit internal resolution for high DPI drawing
+    sigCanvas.width = sigCanvas.offsetWidth || 280;
+    sigCanvas.height = sigCanvas.offsetHeight || 100;
+    
+    sigCtx = sigCanvas.getContext('2d');
+    sigCtx.lineWidth = 3;
+    sigCtx.lineCap = 'round';
+    sigCtx.strokeStyle = '#000000';
+
+    const getPos = (e) => {
+        const rect = sigCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+            x: (clientX - rect.left) * (sigCanvas.width / rect.width),
+            y: (clientY - rect.top) * (sigCanvas.height / rect.height)
+        };
+    };
+
+    const startDrawing = (e) => {
+        isSigning = true;
+        const pos = getPos(e);
+        sigCtx.beginPath();
+        sigCtx.moveTo(pos.x, pos.y);
+    };
+
+    const drawLine = (e) => {
+        if (!isSigning) return;
+        e.preventDefault();
+        const pos = getPos(e);
+        sigCtx.lineTo(pos.x, pos.y);
+        sigCtx.stroke();
+    };
+
+    const stopDrawing = () => {
+        if (isSigning) {
+            isSigning = false;
+            draw();
+        }
+    };
+
+    sigCanvas.addEventListener('mousedown', startDrawing);
+    sigCanvas.addEventListener('mousemove', drawLine);
+    sigCanvas.addEventListener('mouseup', stopDrawing);
+
+    sigCanvas.addEventListener('touchstart', startDrawing);
+    sigCanvas.addEventListener('touchmove', drawLine);
+    sigCanvas.addEventListener('touchend', stopDrawing);
+
+    $('clearSigBtn').onclick = () => {
+        sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+        draw();
+    };
+
+    $('labelName').oninput = draw;
+    $('showNameOverlay').onchange = draw;
+    $('showSigOverlay').onchange = draw;
+}
+
+function drawPhotoOverlays(ctx, photoX, photoY, photoWidth, photoHeight) {
+    const nameText = $('labelName')?.value.trim();
+    const showName = $('showNameOverlay')?.checked;
+    const showSig = $('showSigOverlay')?.checked;
+
+        // 1. Name Banner Overlay
+        if (showName && nameText) {
+            const bannerHeight = photoHeight * 0.13;
+            const bannerY = photoY + photoHeight - bannerHeight;
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+            ctx.fillRect(photoX, bannerY, photoWidth, bannerHeight);
+
+            ctx.fillStyle = '#000000';
+            ctx.font = `bold ${Math.max(12, Math.floor(bannerHeight * 0.5))}px Arial, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            ctx.fillText(
+                nameText.toUpperCase(),
+                photoX + photoWidth / 2,
+                bannerY + bannerHeight / 2
+            );
+
+        // 2. Signature Overlay
+        if (showSig && sigCanvas) {
+            const sigWidth = photoWidth * 0.75;
+            const sigHeight = photoHeight * 0.20;
+            const sigX = photoX + (photoWidth - sigWidth) / 2;
+            const sigY = photoY + photoHeight - sigHeight - 4;
+
+            ctx.drawImage(sigCanvas, sigX, sigY, sigWidth, sigHeight);
+        }
+    }
 }
 
 setupIdCardPrint();
