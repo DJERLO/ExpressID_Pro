@@ -84,12 +84,53 @@ let state = {
     cropper: null,
     flip: 1,
     rotation: 0,
-    currentPage: 0
+    currentPage: 0,
+    stageZoom: 100 // Stage preview zoom scale percentage
 };
 const $ = id => document.getElementById(id);
 function toIn(v, u) {
     v = +v || 0;
     return u === 'mm' ? v / 25.4 : u === 'cm' ? v / 2.54 : v
+}
+
+// Add Zoom Handler Function
+function updateStageZoom(newZoom) {
+    // Clamp zoom level between 30% and 300%
+    state.stageZoom = Math.min(Math.max(newZoom, 30), 300);
+    
+    const canvas = $('previewCanvas');
+    const label = $('stageZoomLabel');
+    
+    if (canvas) {
+        // Apply CSS scale transform to the preview canvas
+        canvas.style.transform = `scale(${state.stageZoom / 100})`;
+    }
+    if (label) {
+        label.textContent = `${Math.round(state.stageZoom)}%`;
+    }
+}
+
+// Bind controls inside init() function
+function setupStageZoom() {
+    const btnIn = $('stageZoomIn');
+    const btnOut = $('stageZoomOut');
+    const btnReset = $('stageZoomReset');
+
+    if (btnIn) btnIn.onclick = () => updateStageZoom(state.stageZoom + 15);
+    if (btnOut) btnOut.onclick = () => updateStageZoom(state.stageZoom - 15);
+    if (btnReset) btnReset.onclick = () => updateStageZoom(100);
+
+    // Optional: Mouse wheel zoom over preview stage (Hold Ctrl / Cmd + Scroll)
+    const stage = document.querySelector('.preview-stage');
+    if (stage) {
+        stage.addEventListener('wheel', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                const delta = e.deltaY < 0 ? 10 : -10;
+                updateStageZoom(state.stageZoom + delta);
+            }
+        }, { passive: false });
+    }
 }
 /**
  * Network Status Handler
@@ -231,6 +272,7 @@ function init() {
     initNetworkListener();
     setupUpload();
     setupIdCardPrint();
+    setupStageZoom();
     initSignaturePad();
     renderButtons();
     renderSizeList();

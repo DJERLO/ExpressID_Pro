@@ -404,6 +404,39 @@ input[type=range] {
     justify-content: flex-end
 }
 
+/* Stage Zoom Controls Overlay */
+.stage-zoom-controls {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(8, 12, 31, 0.85);
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    border-radius: 16px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.stage-zoom-controls button {
+    min-height: 32px;
+    padding: 4px 10px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 10px;
+}
+
+#stageZoomLabel {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--cyan);
+    min-width: 48px;
+    text-align: center;
+}
+
 .preview-stage {
     min-height: calc(100vh - 136px);
     display: grid;
@@ -426,6 +459,13 @@ input[type=range] {
     letter-spacing: .35em;
     font-weight: 800;
     font-size: 12px
+}
+
+canvas#previewCanvas {
+    transform-origin: center center;
+    transition: transform 0.2s ease, box-shadow 0.25s ease;
+    max-width: 100%;
+    height: auto;
 }
 
 canvas {
