@@ -387,10 +387,6 @@ function setupUpload() {
 }
 
 async function handleRemoveBackground() {
-    // Check if offline
-    if (!navigator.onLine) {
-        return alert('You are currently offline. Please reconnect to the internet to use AI background removal.');
-    }
     // Determine the current image source (either from the cropper or the state)
     const currentSrc = $('cropImage')?.src || state.image;
 
