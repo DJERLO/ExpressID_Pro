@@ -29,7 +29,7 @@ export default defineConfig({
       workbox: {
         // Include heavy files like WASM/ONNX if you want them available offline, 
         // though keep an eye on caching limits.
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm,onnx}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm,onnx,json}'],
         maximumFileSizeToCacheInBytes: 50 * 1024 * 1024,
         
         // Crucial for SPA routing on Vercel so offline reloads don't hit 404s
