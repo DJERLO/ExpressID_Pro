@@ -433,7 +433,7 @@ async function handleRemoveBackground() {
         btn.textContent = '⏳ Removing Background...';
 
         // Call the imgly background removal function
-        const processedUrl = await removePhotoBackground(currentSrc);
+        let processedUrl = await removePhotoBackground(currentSrc);
 
         if (processedUrl) {
             updateImageSource(processedUrl);
