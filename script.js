@@ -241,12 +241,40 @@ function init() {
     ;
     ['margin', 'spacing', 'brightness', 'contrast', 'zoom', 'landscape', 'guides', 'labels', 'borders', 'customPaperWidth', 'customPaperHeight'].forEach(id => $(id).addEventListener('input', draw));
     $('zoom').oninput = e => {
-        if (state.cropper)
-            state.cropper.zoomTo(e.target.value / 100);
-        $('zoomValue').textContent = e.target.value + '%';
-        draw()
-    }
-    ;
+        const val = +e.target.value;
+        $('zoomValue').textContent = val + '%';
+
+        if (state.cropper) {
+            // Get full container dimensions of the cropper
+            const containerData = state.cropper.getContainerData();
+            const aspectRatio = getCurrentAspectRatio();
+
+            // 100% = max fit inside container (full view)
+            // 50% = crop box is half the size (zoomed in 2x on center)
+            const scale = val / 100;
+
+            let newWidth = containerData.width * scale;
+            let newHeight = newWidth / aspectRatio;
+
+            // If height overflows container, scale based on height instead
+            if (newHeight > containerData.height) {
+                newHeight = containerData.height * scale;
+                newWidth = newHeight * aspectRatio;
+            }
+
+            // Center the crop box
+            const left = (containerData.width - newWidth) / 2;
+            const top = (containerData.height - newHeight) / 2;
+
+            state.cropper.setCropBoxData({
+                left: left,
+                top: top,
+                width: newWidth,
+                height: newHeight
+            });
+        }
+        draw();
+    };
     $('brightness').oninput = e => $('brightnessValue').textContent = e.target.value + '%';
     $('contrast').oninput = e => $('contrastValue').textContent = e.target.value + '%';
     $('margin').oninput = e => $('marginValue').textContent = (+e.target.value).toFixed(2) + ' in';
@@ -408,9 +436,12 @@ function updateImageSource(newUrl) {
             state.cropper.destroy();
         state.cropper = new Cropper($('cropImage'),{
             aspectRatio: getCurrentAspectRatio(),
+            action: "move",
             viewMode: 1,
             autoCropArea: 1,
-            background: false,
+            background: true,
+            moveable: true,
+            crosshairs: true,
             responsive: true,
             crop: () => draw(),
             ready: () => draw()
@@ -435,11 +466,15 @@ async function loadFile(f) {
         if (state.cropper)
             state.cropper.destroy();
         state.cropper = new Cropper($('cropImage'),{
+            action: "move",
             aspectRatio: getCurrentAspectRatio(),
             viewMode: 1,
             autoCropArea: 1,
-            background: false,
+            background: true,
+            moveable: true,
+            crosshairs: true,
             responsive: true,
+            zoomOnWheel: true, // or set to false if you ONLY want slider control
             crop: () => draw(),
             ready: () => draw()
         });
@@ -634,18 +669,11 @@ function draw() {
     let img = getCroppedCanvas();
     activePage.forEach(it => {
         ctx.save();
-        let bg = ctx.createLinearGradient(it.x, it.y, it.x + it.w, it.y + it.h);
-        bg.addColorStop(0, '#eefbff');
-        bg.addColorStop(1, '#fff1fe');
-        ctx.fillStyle = bg;
+        ctx.fillStyle = '#ffffff';
         ctx.fillRect(it.x, it.y, it.w, it.h);
         if ($('borders').checked) {
-            let grad = ctx.createLinearGradient(it.x, it.y, it.x + it.w, it.y + it.h);
-            grad.addColorStop(0, '#00e5ff');
-            grad.addColorStop(.55, '#7c3cff');
-            grad.addColorStop(1, '#ff2bd6');
-            ctx.strokeStyle = grad;
-            ctx.lineWidth = 5;
+            ctx.strokeStyle = "#000000";
+            ctx.lineWidth = 10;
             ctx.shadowColor = 'rgba(0,229,255,.45)';
             ctx.shadowBlur = 16;
             ctx.strokeRect(it.x, it.y, it.w, it.h);
@@ -1247,9 +1275,6 @@ const networkMessage = document.getElementById('network-message');
 const networkIcon = document.getElementById('network-icon');
 const networkCloseBtn = document.getElementById('network-close');
 const removeBgBtn = document.getElementById('removeBgBtn');
-networkCloseBtn.addEventListener('click', () => {
-  networkModal.classList.add('hidden');
-});
 
 function updateOnlineStatus() {
   if (navigator.onLine) {
