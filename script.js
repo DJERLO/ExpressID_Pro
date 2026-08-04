@@ -489,10 +489,7 @@ function updateImageSource(newUrl) {
             moveable: true,
             crosshairs: true,
             responsive: true,
-            crop: () => {
-                if (cropRaf) cancelAnimationFrame(cropRaf);
-                cropRaf = requestAnimationFrame(() => draw());
-            },
+            crop: () => draw(),
             ready: () => draw()
         });
         state.image = newUrl;
@@ -528,10 +525,7 @@ async function loadFile(f) {
             responsive: true,
             zoomOnWheel: true,
             zoomOnTouch: true,
-            crop: () => {
-                if (cropRaf) cancelAnimationFrame(cropRaf);
-                cropRaf = requestAnimationFrame(() => draw());
-            },
+            crop: () => draw(),
             ready: () => draw()
         });
         state.image = originalUrl;
