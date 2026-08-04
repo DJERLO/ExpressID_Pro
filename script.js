@@ -142,22 +142,15 @@ function initNetworkListener() {
     const modal = $('network-modal');
     const msg = $('network-message');
     const icon = $('network-icon');
-    const bgBtn = $('removeBgBtn');
 
     function updateNetworkStatus(e) {
         const isOnline = navigator.onLine;
-
-        // 1. Enable/Disable the Remove Background button
-        if (bgBtn) {
-            bgBtn.disabled = !isOnline;
-            bgBtn.title = isOnline ? '' : 'Internet connection required for background removal';
-        }
 
         // 2. Trigger status modal only on active connection changes or when offline
         if (!isOnline) {
             modal.className = 'network-modal offline';
             icon.textContent = '📡';
-            msg.textContent = 'You lost internet connection. Background removal requires an active network connection.';
+            msg.textContent = 'You lost internet connection.';
         } else if (e && e.type === 'online') {
             modal.className = 'network-modal online';
             icon.textContent = '⚡';
@@ -1238,10 +1231,9 @@ function updateOnlineStatus() {
     }, 3000);
   } else {
     // Show offline state
-    removeBgBtn.disabled = true; // Disable the remove background button when offline
     networkModal.className = 'network-modal offline';
     networkIcon.textContent = '📡';
-    networkMessage.textContent = 'You lost internet connection. Some Features may not work.';
+    networkMessage.textContent = 'You are offline.';
   }
 }
 
