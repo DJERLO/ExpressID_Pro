@@ -9,6 +9,7 @@ const config = {
     publicPath: `${window.location.origin}/dist/`,
     debug: false,
     progress: (key, current, total) => {
+        console.log(`Downloading ${key}: ${current} of ${total}`);
         const percent = total ? Math.round((current / total) * 100) : 0;
         
         // Update console or UI elements
@@ -24,6 +25,14 @@ preload(config).then(() => {
   console.log("Asset preloading succeeded")
 })
 
+// Global debounce utility
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
 /**
  * Removes the background from an image using the Imgly Background Removal API.
  * @param {string} imageSource - The source URL of the image to process.
@@ -265,7 +274,11 @@ function init() {
         draw()
     }
     ;
-    ['margin', 'spacing', 'brightness', 'contrast', 'zoom', 'landscape', 'guides', 'labels', 'borders', 'customPaperWidth', 'customPaperHeight'].forEach(id => $(id).addEventListener('input', draw));
+    const debouncedDraw = debounce(draw, 50);
+
+    ['margin', 'spacing', 'brightness', 'contrast', 'customPaperWidth', 'customPaperHeight'].forEach(id => {
+        $(id).addEventListener('input', debouncedDraw);
+    });
     $('zoom').oninput = e => {
         const val = +e.target.value;
         $('zoomValue').textContent = val + '%';
@@ -454,6 +467,7 @@ async function handleRemoveBackground() {
  * Replaces the current state image and refreshes the Cropper instance if initialized
  */
 function updateImageSource(newUrl) {
+    let cropRaf = null;
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
@@ -468,13 +482,17 @@ function updateImageSource(newUrl) {
         state.cropper = new Cropper($('cropImage'),{
             aspectRatio: getCurrentAspectRatio(),
             action: "move",
-            viewMode: 1,
+            dragMode: 'move',
+            viewMode: 0,
             autoCropArea: 1,
             background: true,
             moveable: true,
             crosshairs: true,
             responsive: true,
-            crop: () => draw(),
+            crop: () => {
+                if (cropRaf) cancelAnimationFrame(cropRaf);
+                cropRaf = requestAnimationFrame(() => draw());
+            },
             ready: () => draw()
         });
         state.image = newUrl;
@@ -498,15 +516,22 @@ async function loadFile(f) {
             state.cropper.destroy();
         state.cropper = new Cropper($('cropImage'),{
             action: "move",
+            dragMode: "move",
             aspectRatio: getCurrentAspectRatio(),
-            viewMode: 1,
+            viewMode: 0,
             autoCropArea: 1,
+            cropBoxMovable: false,
+            cropBoxResizable: false,
             background: true,
             moveable: true,
             crosshairs: true,
             responsive: true,
-            zoomOnWheel: true, // or set to false if you ONLY want slider control
-            crop: () => draw(),
+            zoomOnWheel: true,
+            zoomOnTouch: true,
+            crop: () => {
+                if (cropRaf) cancelAnimationFrame(cropRaf);
+                cropRaf = requestAnimationFrame(() => draw());
+            },
             ready: () => draw()
         });
         state.image = originalUrl;
@@ -1096,10 +1121,6 @@ function addIdCardLayout() {
     renderSizeList();
     draw();
 }
-const oldGetCroppedCanvas = getCroppedCanvas;
-getCroppedCanvas = function() {
-    return oldGetCroppedCanvas()
-};
 
 function getCurrentAspectRatio() {
     let w = +$('photoWidth').value || 1;
@@ -1238,37 +1259,4 @@ function drawPhotoOverlays(ctx, photoX, photoY, photoWidth, photoHeight) {
             ctx.drawImage(sigCanvas, sigX, sigY, sigWidth, sigHeight);
         }
     }
-}
-const networkModal = document.getElementById('network-modal');
-const networkMessage = document.getElementById('network-message');
-const networkIcon = document.getElementById('network-icon');
-const networkCloseBtn = document.getElementById('network-close');
-const removeBgBtn = document.getElementById('removeBgBtn');
-
-function updateOnlineStatus() {
-  if (navigator.onLine) {
-    // Show back online state
-    networkModal.className = 'network-modal online';
-    networkIcon.textContent = '⚡';
-    networkMessage.textContent = 'You are back online!';
-    
-    // Auto-hide the "Back Online" banner after 3 seconds
-    setTimeout(() => {
-      networkModal.classList.add('hidden');
-    }, 3000);
-  } else {
-    // Show offline state
-    networkModal.className = 'network-modal offline';
-    networkIcon.textContent = '📡';
-    networkMessage.textContent = 'You are offline.';
-  }
-}
-
-// Listen for network change events
-window.addEventListener('online', updateOnlineStatus);
-window.addEventListener('offline', updateOnlineStatus);
-
-// Check initial status on load (only show if already offline)
-if (!navigator.onLine) {
-  updateOnlineStatus();
 }
