@@ -201,15 +201,38 @@ function initNetworkListener() {
     }
 }
 function init() {
+    const loader = document.getElementById('bg-loader');
+    if (loader) loader.style.display = 'flex';
     // Trigger preloading of AI background removal model assets in the background if online
     if (navigator.onLine) {
         preload({
             publicPath: `${window.location.origin}/dist/`,
             model: 'isnet',
-            debug: false
-        }).catch(err => {
+            debug: false,
+            progress: (key, current, total) => {
+                const percent = total ? Math.round((current / total) * 100) : 0;
+                
+                // Update your loader UI text and bar elements
+                const textEl = document.getElementById('loader-text');
+                const barEl = document.getElementById('loader-progress-bar');
+                
+                if (textEl) textEl.textContent = `Downloading AI Assets (${key}): ${percent}%`;
+                if (barEl) barEl.style.width = `${percent}%`;
+            }
+        })
+        .then(() => {
+            console.log("Asset preloading succeeded");
+        })
+        .catch(err => {
             console.log('Background preload skipped or failed:', err);
+        })
+        .finally(() => {
+            // 3. Hide the loader once preloading succeeds or fails
+            if (loader) loader.style.display = 'none';
         });
+    } else {
+        // Hide immediately if offline
+        if (loader) loader.style.display = 'none';
     }
 
     $('currentYear').textContent = new Date().getFullYear();
