@@ -427,6 +427,7 @@ async function handleRemoveBackground() {
         if (processedUrl) {
             updateImageSource(processedUrl);
         } else {
+            processedUrl = null;
             alert('Could not remove background. Please try another image.');
         }
     } catch (err) {
