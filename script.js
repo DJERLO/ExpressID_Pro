@@ -315,13 +315,20 @@ function selectPreset(k) {
     $('photoHeight').value = p[1];
     $('unit').value = p[2];
     $('quantity').value = p[3];
-    state.sizes = [{
-        w: p[0],
-        h: p[1],
-        unit: p[2],
-        qty: p[3],
-        label: k
-    }];
+
+    // Preserve any active ID card items currently in state
+    const existingIdCards = state.sizes.filter(s => s.idCard);
+
+    state.sizes = [
+        {
+            w: p[0],
+            h: p[1],
+            unit: p[2],
+            qty: p[3],
+            label: k
+        },
+        ...existingIdCards
+    ];
 
     if (state.cropper) {
         let targetWidthInInches = toIn(p[0], p[2]);
@@ -487,42 +494,15 @@ async function loadFile(f) {
     }
 }
 function layoutPhotos(pw, ph, margin, spacing) {
-    let items = [];
+    let normalItems = [];
+    let idGroups = [];
+
     state.sizes.forEach(s => {
         if (s.idCard) {
-            const cw = toIn(s.w, s.unit) * DPI;
-            const ch = toIn(s.h, s.unit) * DPI;
-            const output = s.output || document.getElementById('idCardOutput')?.value || 'topBottom';
-            const moveX = (s.moveX || 0) * DPI;
-            const moveY = (s.moveY || 0) * DPI;
-
-            for (let i = 0; i < (s.copies || 1); i++) {
-                if (s.mode === 'frontOnly' || s.mode === 'backOnly') {
-                    const side = s.mode === 'frontOnly' ? 'front' : 'back';
-                    items.push({
-                        w: cw,
-                        h: ch,
-                        label: side === 'front' ? 'ID FRONT' : 'ID BACK',
-                        idSide: side,
-                        moveX, moveY
-                    });
-                } else {
-                    const gap = spacing;
-                    const gw = output === 'sideBySide' ? (cw * 2 + gap) : cw;
-                    const gh = output === 'sideBySide' ? ch : (ch * 2 + gap);
-                    items.push({
-                        w: gw,
-                        h: gh,
-                        label: 'ID PAIR',
-                        idPair: true,
-                        output, cw, ch, gap,
-                        moveX, moveY
-                    });
-                }
-            }
+            idGroups.push(s);
         } else {
             for (let i = 0; i < s.qty; i++) {
-                items.push({
+                normalItems.push({
                     w: toIn(s.w, s.unit) * DPI,
                     h: toIn(s.h, s.unit) * DPI,
                     label: s.label
@@ -530,46 +510,114 @@ function layoutPhotos(pw, ph, margin, spacing) {
             }
         }
     });
-    let pages = []
-      , page = [];
-    let y = margin
-      , x = margin
-      , rowH = 0
-      , row = [];
-    function flushRow() {
-        if (!row.length)
-            return;
-        let rowW = row.reduce( (a, it) => a + it.w, 0) + spacing * (row.length - 1);
-        let offset = (pw - rowW) / 2;
-        row.forEach( (it, idx) => {
-            it.x = offset + row.slice(0, idx).reduce( (a, r) => a + r.w + spacing, 0);
-            it.y = y;
-            page.push(it)
+
+    let items = [...normalItems];
+    idGroups.forEach(s => {
+        const cw = toIn(s.w, s.unit) * DPI;
+        const ch = toIn(s.h, s.unit) * DPI;
+        const output = s.output || $('idCardOutput')?.value || 'topBottom';
+        const currentMoveX = $('idMoveX') ? +$('idMoveX').value : 0;
+        const currentMoveY = $('idMoveY') ? +$('idMoveY').value : 0;
+        const moveX = ((s.moveX ?? currentMoveX) || 0) * DPI;
+        const moveY = ((s.moveY ?? currentMoveY) || 0) * DPI;
+
+        for (let i = 0; i < (s.copies || 1); i++) {
+            if (s.mode === 'frontOnly' || s.mode === 'backOnly') {
+                const side = s.mode === 'frontOnly' ? 'front' : 'back';
+                items.push({
+                    w: cw,
+                    h: ch,
+                    label: side === 'front' ? 'ID FRONT' : 'ID BACK',
+                    idSide: side,
+                    forceCenter: true,
+                    moveX,
+                    moveY
+                });
+            } else {
+                const gap = spacing;
+                const gw = output === 'sideBySide' ? cw * 2 + gap : cw;
+                const gh = output === 'sideBySide' ? ch : ch * 2 + gap;
+                items.push({
+                    w: gw,
+                    h: gh,
+                    label: 'ID PAIR',
+                    idPair: true,
+                    output,
+                    cw,
+                    ch,
+                    gap,
+                    moveX,
+                    moveY
+                });
+            }
         }
-        );
+    });
+
+    let pages = [];
+    let page = [];
+    let y = margin;
+    let x = margin;
+    let rowH = 0;
+    let row = [];
+
+    function flushRow() {
+        if (!row.length) return;
+        let rowW = row.reduce((a, it) => a + it.w, 0) + spacing * (row.length - 1);
+        let offset = (pw - rowW) / 2;
+        row.forEach((it, idx) => {
+            it.x = offset + row.slice(0, idx).reduce((a, r) => a + r.w + spacing, 0);
+            it.y = y;
+            page.push(it);
+        });
         y += rowH + spacing;
         x = margin;
         rowH = 0;
-        row = []
+        row = [];
     }
-    items.forEach(it => {
-        if (x + it.w > pw - margin && row.length) {
-            flushRow()
+
+    function pushCentered(it) {
+        if (page.length || row.length) {
+            flushRow();
+            if (page.length) {
+                pages.push(page);
+                page = [];
+                y = margin;
+            }
         }
+        it.x = (pw - it.w) / 2 + (it.moveX || 0);
+        it.y = (ph - it.h) / 2 + (it.moveY || 0);
+        it.x = Math.max(margin, Math.min(pw - margin - it.w, it.x));
+        it.y = Math.max(margin, Math.min(ph - margin - it.h, it.y));
+
+        page.push(it);
+        pages.push(page);
+        page = [];
+        y = margin;
+        x = margin;
+        rowH = 0;
+    }
+
+    items.forEach(it => {
+        if (it.idPair || it.forceCenter) {
+            pushCentered(it);
+            return;
+        }
+        if (x + it.w > pw - margin && row.length) flushRow();
         if (y + it.h > ph - margin && page.length) {
             flushRow();
             pages.push(page);
             page = [];
-            y = margin
+            y = margin;
         }
         row.push(it);
         x += it.w + spacing;
-        rowH = Math.max(rowH, it.h)
-    }
-    );
+        rowH = Math.max(rowH, it.h);
+    });
+
     flushRow();
     if (page.length) pages.push(page);
-    return pages.length ? pages : [[]]
+
+    return pages.length ? pages : [[]];
 }
 function getCroppedCanvas() {
     if (!state.cropper) return null;
@@ -619,111 +667,136 @@ function drawImageCover(ctx, img, dx, dy, dw, dh) {
     ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
 }
 function draw() {
-    const canvas = document.getElementById('previewCanvas');
+    const canvas = $('previewCanvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
 
     let [wi, hi] = papers[state.paper];
-    if (document.getElementById('landscape')?.checked) [wi, hi] = [hi, wi];
+    if ($('landscape')?.checked) [wi, hi] = [hi, wi];
     canvas.width = wi * DPI;
     canvas.height = hi * DPI;
 
+    // Background Clear
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    let margin = +(document.getElementById('margin')?.value || 0.25) * DPI;
-    let spacing = +(document.getElementById('spacing')?.value || 0.1) * DPI;
-    
-    let pages = layoutPhotos(canvas.width, canvas.height, margin, spacing);
-
-    if (state.currentPage >= pages.length) {
-        state.currentPage = Math.max(0, pages.length - 1);
-    }
-
-    // Update Pagination UI Elements
-    const pageCountEl = document.getElementById('pageCount');
-    const pageIndicatorEl = document.getElementById('pageIndicator');
-    const prevBtn = document.getElementById('prevPage');
-    const nextBtn = document.getElementById('nextPage');
-    
-    if (pageCountEl) pageCountEl.textContent = `${pages.length} page${pages.length > 1 ? 's' : ''}`;
-    if (pageIndicatorEl) pageIndicatorEl.textContent = `Page ${state.currentPage + 1} of ${pages.length}`;
-    if (prevBtn) prevBtn.disabled = state.currentPage === 0;
-    if (nextBtn) nextBtn.disabled = state.currentPage >= pages.length - 1;
-
-    // Extract active page elements
-    const activePage = pages[state.currentPage] || [];
-
-    // Draw standard photos / ID cards on active page
-    function paintId(side, x, y, w, h, label) {
-        let img = state.idCards ? state.idCards[side] : null;
-        ctx.save();
-        if (img) ctx.drawImage(img, x, y, w, h);
-        
-        if (document.getElementById('borders')?.checked) {
-            ctx.strokeStyle = side === 'front' ? '#00e5ff' : '#9dff57';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(x, y, w, h);
-        }
-
-        ctx.fillStyle = 'rgba(8,12,31,.75)';
-        ctx.fillRect(x + 10, y + 10, 140, 32);
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 18px Arial';
-        ctx.fillText(label, x + 18, y + 32);
-        ctx.restore();
-    }
-
-    let total = state.sizes.reduce( (a, s) => a + s.qty, 0);
-    $('pageCount').textContent = pages.length + ' page' + (pages.length > 1 ? 's' : '');
-    $('totalPhotos').textContent = total + ' photo' + (total !== 1 ? 's' : '');
-    ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.strokeStyle = '#d9d9d9';
     ctx.lineWidth = 2;
     ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
-    let img = getCroppedCanvas();
+
+    let margin = +($('margin')?.value || 0.25) * DPI;
+    let spacing = +($('spacing')?.value || 0.1) * DPI;
+
+    let pages = layoutPhotos(canvas.width, canvas.height, margin, spacing);
+
+    // Keep active page within bounds
+    if (state.currentPage >= pages.length) {
+        state.currentPage = Math.max(0, pages.length - 1);
+    }
+
+    // Update Pagination Counters
+    const pageCountEl = $('pageCount');
+    const pageIndicatorEl = $('pageIndicator');
+    const prevBtn = $('prevPage');
+    const nextBtn = $('nextPage');
+    const totalPhotosEl = $('totalPhotos');
+
+    let total = state.sizes.reduce((a, s) => a + (s.qty || 1), 0);
+    if (pageCountEl) pageCountEl.textContent = `${pages.length} page${pages.length > 1 ? 's' : ''}`;
+    if (pageIndicatorEl) pageIndicatorEl.textContent = `Page ${state.currentPage + 1} of ${pages.length}`;
+    if (totalPhotosEl) totalPhotosEl.textContent = `${total} photo${total !== 1 ? 's' : ''}`;
+    if (prevBtn) prevBtn.disabled = state.currentPage === 0;
+    if (nextBtn) nextBtn.disabled = state.currentPage >= pages.length - 1;
+
+    const activePage = pages[state.currentPage] || [];
+    let packageImg = getCroppedCanvas();
+
+    // Helper to paint ID cards
+    function paintIdCard(side, x, y, w, h, label) {
+        let idImg = state.idCards ? state.idCards[side] : null;
+        ctx.save();
+        if (idImg) {
+            ctx.drawImage(idImg, x, y, w, h);
+        } else {
+            ctx.fillStyle = '#f1f5f9';
+            ctx.fillRect(x, y, w, h);
+            ctx.fillStyle = '#64748b';
+            ctx.textAlign = 'center';
+            ctx.font = '36px Arial';
+            ctx.fillText(`Upload ${side.toUpperCase()} ID`, x + w / 2, y + h / 2);
+        }
+
+        if ($('borders')?.checked) {
+            ctx.strokeStyle = side === 'front' ? '#00e5ff' : '#9dff57';
+            ctx.lineWidth = 8;
+            ctx.strokeRect(x, y, w, h);
+        }
+
+        ctx.fillStyle = 'rgba(8,12,31,.75)';
+        ctx.fillRect(x + 16, y + 16, 170, 42);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(label, x + 28, y + 46);
+        ctx.restore();
+    }
+
+    // Render Page Elements
     activePage.forEach(it => {
         ctx.save();
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(it.x, it.y, it.w, it.h);
-        if ($('borders').checked) {
-            ctx.strokeStyle = "#000000";
-            ctx.lineWidth = 10;
-            ctx.shadowColor = 'rgba(0,229,255,.45)';
-            ctx.shadowBlur = 16;
-            ctx.strokeRect(it.x, it.y, it.w, it.h);
-            ctx.shadowBlur = 0;
-        }
-        if (img) {
-            ctx.filter = `brightness(${$('brightness').value}%) contrast(${$('contrast').value}%)`;
-            drawImageCover(ctx, img, it.x, it.y, it.w, it.h);
 
-           // Draw ID card overlays if applicable
-            if (!it.idCard && !it.idSide && !it.idPair) {
-                drawPhotoOverlays(ctx, it.x, it.y, it.w, it.h);
+        // IF ITEM IS AN ID PAIR
+        if (it.idPair) {
+            if (it.output === 'sideBySide') {
+                paintIdCard('front', it.x, it.y, it.cw, it.ch, 'ID FRONT');
+                paintIdCard('back', it.x + it.cw + it.gap, it.y, it.cw, it.ch, 'ID BACK');
+            } else {
+                paintIdCard('front', it.x, it.y, it.cw, it.ch, 'ID FRONT');
+                paintIdCard('back', it.x, it.y + it.ch + it.gap, it.cw, it.ch, 'ID BACK');
             }
-        } else {
-            ctx.fillStyle = '#7d7a75';
-            ctx.textAlign = 'center';
-            ctx.font = '48px Arial';
-            ctx.fillText('Upload photo', it.x + it.w / 2, it.y + it.h / 2)
+        } 
+        // IF ITEM IS SINGLE SIDE ID CARD
+        else if (it.idSide) {
+            paintIdCard(it.idSide, it.x, it.y, it.w, it.h, it.label);
+        } 
+        // IF ITEM IS STANDARD PACKAGE PHOTO
+        else {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(it.x, it.y, it.w, it.h);
+
+            if ($('borders')?.checked) {
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 10;
+                ctx.strokeRect(it.x, it.y, it.w, it.h);
+            }
+
+            if (packageImg) {
+                ctx.filter = `brightness(${$('brightness').value}%) contrast(${$('contrast').value}%)`;
+                drawImageCover(ctx, packageImg, it.x, it.y, it.w, it.h);
+                drawPhotoOverlays(ctx, it.x, it.y, it.w, it.h);
+            } else {
+                ctx.fillStyle = '#7d7a75';
+                ctx.textAlign = 'center';
+                ctx.font = '48px Arial';
+                ctx.fillText('Upload photo', it.x + it.w / 2, it.y + it.h / 2);
+            }
+
+            if ($('guides')?.checked) {
+                ctx.strokeStyle = 'rgba(255,43,214,.65)';
+                ctx.setLineDash([18, 12]);
+                ctx.strokeRect(it.x - 8, it.y - 8, it.w + 16, it.h + 16);
+                ctx.setLineDash([]);
+            }
+
+            if ($('labels')?.checked) {
+                ctx.fillStyle = 'rgba(124,60,255,.95)';
+                ctx.font = 'bold 34px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText(it.label, it.x + 18, it.y + 44);
+            }
         }
-        if ($('guides').checked) {
-            ctx.strokeStyle = 'rgba(255,43,214,.65)';
-            ctx.setLineDash([18, 12]);
-            ctx.strokeRect(it.x - 8, it.y - 8, it.w + 16, it.h + 16);
-            ctx.setLineDash([])
-        }
-        if ($('labels').checked) {
-            ctx.fillStyle = 'rgba(124,60,255,.95)';
-            ctx.font = 'bold 34px Arial';
-            ctx.textAlign = 'left';
-            ctx.fillText(it.label, it.x + 18, it.y + 44)
-        }
-        ctx.restore()
-    }
-    )
+
+        ctx.restore();
+    });
 }
 async function downloadPNG() {
     let canvas = document.getElementById('previewCanvas');
@@ -886,30 +959,58 @@ state.idCards = {
 };
 function setupIdCardPrint() {
     const bind = (side) => {
-        const input = $(side + 'Input')
-          , drop = $(side + 'Drop');
-        if (!input || !drop)
-            return;
+        const input = $(side + 'Input'),
+              drop = $(side + 'Drop');
+        if (!input || !drop) return;
+
         input.onchange = e => openIdCrop(side, e.target.files[0]);
+
         ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => {
             e.preventDefault();
-            drop.classList.add('drag')
-        }
-        ));
+            drop.classList.add('drag');
+        }));
+
         ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => {
             e.preventDefault();
-            drop.classList.remove('drag')
-        }
-        ));
+            drop.classList.remove('drag');
+        }));
+
         drop.addEventListener('drop', e => openIdCrop(side, e.dataTransfer.files[0]));
-    }
-    ;
+    };
+
     bind('front');
     bind('back');
+
     $('cancelIdCrop').onclick = () => closeIdCrop();
     $('saveIdCrop').onclick = saveIdCrop;
     $('addIdCards').onclick = addIdCardLayout;
-    ['idCardWidth', 'idCardHeight', 'idCardCopies', 'idCardMode', 'idCardOutput', 'idMoveX', 'idMoveY'].forEach(id => $(id).addEventListener('input', draw));
+
+    // Helper to update state.sizes whenever ID Card controls change
+    const updateIdCardStateAndDraw = () => {
+        // Find the active ID card entry in state.sizes (or the target one)
+        let idSize = state.sizes.find(s => s.idCard);
+
+        if (idSize) {
+            idSize.w = +$('idCardWidth').value;
+            idSize.h = +$('idCardHeight').value;
+            idSize.unit = 'in'; // or your active unit
+            idSize.copies = +$('idCardCopies').value;
+            idSize.mode = $('idCardMode').value;
+            idSize.output = $('idCardOutput').value;
+            idSize.moveX = +$('idMoveX').value;
+            idSize.moveY = +$('idMoveY').value;
+        }
+
+        // Re-render canvas
+        draw();
+    };
+
+    ['idCardWidth', 'idCardHeight', 'idCardCopies', 'idCardMode', 'idCardOutput', 'idMoveX', 'idMoveY'].forEach(id => {
+        const el = $(id);
+        if (el) {
+            el.addEventListener('input', updateIdCardStateAndDraw);
+        }
+    });
 }
 function openIdCrop(side, file) {
     if (!file || !/image\/(jpeg|png)/.test(file.type))
@@ -975,181 +1076,9 @@ function addIdCardLayout() {
     renderSizeList();
     draw();
 }
-const oldLayoutPhotos = layoutPhotos;
-layoutPhotos = function(pw, ph, margin, spacing) {
-    let normalItems = []
-      , idGroups = [];
-    state.sizes.forEach(s => {
-        if (s.idCard) {
-            idGroups.push(s);
-        } else {
-            for (let i = 0; i < s.qty; i++)
-                normalItems.push({
-                    w: toIn(s.w, s.unit) * DPI,
-                    h: toIn(s.h, s.unit) * DPI,
-                    label: s.label
-                })
-        }
-    }
-    );
-    let items = [...normalItems];
-    idGroups.forEach(s => {
-        const cw = toIn(s.w, s.unit) * DPI
-          , ch = toIn(s.h, s.unit) * DPI;
-        const output = s.output || $('idCardOutput')?.value || 'topBottom';
-        const currentMoveX = $('idMoveX') ? +$('idMoveX').value : 0;
-        const currentMoveY = $('idMoveY') ? +$('idMoveY').value : 0;
-        const moveX = ((s.moveX ?? currentMoveX) || 0) * DPI
-          , moveY = ((s.moveY ?? currentMoveY) || 0) * DPI;
-        for (let i = 0; i < s.copies; i++) {
-            if (s.mode === 'frontOnly' || s.mode === 'backOnly') {
-                const side = s.mode === 'frontOnly' ? 'front' : 'back';
-                items.push({
-                    w: cw,
-                    h: ch,
-                    label: side === 'front' ? 'ID FRONT' : 'ID BACK',
-                    idSide: side,
-                    forceCenter: true,
-                    moveX,
-                    moveY
-                });
-            } else {
-                const gap = spacing;
-                const gw = output === 'sideBySide' ? cw * 2 + gap : cw;
-                const gh = output === 'sideBySide' ? ch : ch * 2 + gap;
-                items.push({
-                    w: gw,
-                    h: gh,
-                    label: 'ID PAIR',
-                    idPair: true,
-                    output,
-                    cw,
-                    ch,
-                    gap,
-                    moveX,
-                    moveY
-                });
-            }
-        }
-    }
-    );
-    let pages = []
-      , page = [];
-    let y = margin
-      , x = margin
-      , rowH = 0
-      , row = [];
-    function pushCentered(it) {
-        if (page.length || row.length) {
-            flushRow();
-            if (page.length) {
-                pages.push(page);
-                page = [];
-                y = margin
-            }
-        }
-        it.x = (pw - it.w) / 2 + (it.moveX || 0);
-        it.y = (ph - it.h) / 2 + (it.moveY || 0);
-        it.x = Math.max(margin, Math.min(pw - margin - it.w, it.x));
-        it.y = Math.max(margin, Math.min(ph - margin - it.h, it.y));
-        page.push(it);
-        pages.push(page);
-        page = [];
-        y = margin;
-        x = margin;
-        rowH = 0;
-    }
-    function flushRow() {
-        if (!row.length)
-            return;
-        let rowW = row.reduce( (a, it) => a + it.w, 0) + spacing * (row.length - 1);
-        let offset = (pw - rowW) / 2;
-        row.forEach( (it, idx) => {
-            it.x = offset + row.slice(0, idx).reduce( (a, r) => a + r.w + spacing, 0);
-            it.y = y;
-            page.push(it)
-        }
-        );
-        y += rowH + spacing;
-        x = margin;
-        rowH = 0;
-        row = []
-    }
-    items.forEach(it => {
-        if (it.idPair || it.forceCenter) {
-            pushCentered(it);
-            return
-        }
-        if (x + it.w > pw - margin && row.length)
-            flushRow();
-        if (y + it.h > ph - margin && page.length) {
-            flushRow();
-            pages.push(page);
-            page = [];
-            y = margin
-        }
-        row.push(it);
-        x += it.w + spacing;
-        rowH = Math.max(rowH, it.h)
-    }
-    );
-    flushRow();
-    if (page.length)
-        pages.push(page);
-    return pages.length ? pages : [[]]
-}
-;
 const oldGetCroppedCanvas = getCroppedCanvas;
 getCroppedCanvas = function() {
     return oldGetCroppedCanvas()
-}
-;
-const oldDraw = draw;
-draw = function() {
-    
-    oldDraw();
-    // repaint ID card images over any ID placeholders on first page
-    const canvas = $('previewCanvas')
-      , ctx = canvas.getContext('2d');
-    let[wi,hi] = papers[state.paper];
-    if ($('landscape').checked)
-        [wi,hi] = [hi, wi];
-    let margin = +$('margin').value * DPI
-      , spacing = +$('spacing').value * DPI;
-    let pages = layoutPhotos(canvas.width, canvas.height, margin, spacing);
-    const activePage = pages[state.currentPage] || [];
-    
-    function paintId(side, x, y, w, h, label) {
-        let img = state.idCards[side];
-        ctx.save();
-        if (img)
-            ctx.drawImage(img, x, y, w, h);
-        if ($('borders').checked) {
-            ctx.strokeStyle = side === 'front' ? '#00e5ff' : '#9dff57';
-            ctx.lineWidth = 8;
-            ctx.strokeRect(x, y, w, h);
-        }
-        ctx.fillStyle = 'rgba(8,12,31,.75)';
-        ctx.fillRect(x + 16, y + 16, 170, 42);
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 26px Arial';
-        ctx.fillText(label, x + 28, y + 46);
-        ctx.restore();
-    }
-    activePage.filter(it => it.idSide || it.idPair).forEach(it => {
-        if (it.idPair) {
-            if (it.output === 'sideBySide') {
-                paintId('front', it.x, it.y, it.cw, it.ch, 'ID FRONT');
-                paintId('back', it.x + it.cw + it.gap, it.y, it.cw, it.ch, 'ID BACK')
-            } else {
-                paintId('front', it.x, it.y, it.cw, it.ch, 'ID FRONT');
-                paintId('back', it.x, it.y + it.ch + it.gap, it.cw, it.ch, 'ID BACK')
-            }
-        } else {
-            paintId(it.idSide, it.x, it.y, it.w, it.h, it.label)
-        }
-    }
-    )
 };
 
 function getCurrentAspectRatio() {
@@ -1162,8 +1091,13 @@ function selectPackage(pkgKey) {
     let items = packages[pkgKey];
     if (!items) return;
 
-    // Deep clone items into state.sizes
-    state.sizes = items.map(item => ({ ...item }));
+    const existingIdCards = state.sizes.filter(s => s.idCard);
+
+    // Combine new package items with preserved ID cards
+    state.sizes = [
+        ...items.map(item => ({ ...item })),
+        ...existingIdCards
+    ];
 
     // Set cropper aspect ratio based on the first item in the package
     if (state.cropper && state.sizes.length > 0) {
