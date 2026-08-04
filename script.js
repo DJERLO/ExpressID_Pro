@@ -1,4 +1,4 @@
-import { removeBackground } from '@imgly/background-removal';
+import { removeBackground, preload } from '@imgly/background-removal';
 import 'cropperjs/dist/cropper.css';
 import  Cropper from 'cropperjs';
 import { jsPDF } from 'jspdf';
@@ -173,6 +173,17 @@ function initNetworkListener() {
     }
 }
 function init() {
+    // Trigger preloading of AI background removal model assets in the background if online
+    if (navigator.onLine) {
+        preload({
+            publicPath: `${window.location.origin}/dist/`,
+            model: 'isnet',
+            debug: false
+        }).catch(err => {
+            console.log('Background preload skipped or failed:', err);
+        });
+    }
+
     $('currentYear').textContent = new Date().getFullYear();
     $('removeBgBtn').onclick = handleRemoveBackground;
 
