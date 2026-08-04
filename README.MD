@@ -8,8 +8,8 @@ ExpressID Pro is a lightweight, web-based photo layout engine designed to quickl
 
 **ExpressID Pro** was created to solve a real-world operational bottleneck at **4J's Grosari**, our family-owned sari-sari store. 
 
-In our day-to-day operations, serving customers who come in to buy daily necessities while simultaneously handling rush ID photo requests was a major challenge[cite: 1]. Our old workflow was painfully tedious and multi-stepped:
-1. Uploading customer photos to third-party tools like **remove.bg** to erase backgrounds[cite: 1].
+In our day-to-day operations, serving customers who come in to buy daily necessities while simultaneously handling rush ID photo requests was a major challenge. Our old workflow was painfully tedious and multi-stepped:
+1. Uploading customer photos to third-party tools like **remove.bg** to erase backgrounds
 2. Importing the photos into **Microsoft Word** or **Canva**.
 3. Manually tweaking image dimensions, margins, and grid alignments for printing.
 
@@ -50,30 +50,14 @@ Check out the live application hosted on GitHub Pages:
 
 ## 💻 Local Setup & Development
 
-Because **ExpressID Pro** is a 100% static client-side application, it does not require a backend server or Node.js environment! You can run it directly using any static file server or tool.
+ExpressID Pro is a web application, so you'll need a web browser to view and interact with the app.
 
-### Option 1: VS Code Live Server Extension (Recommended)
-1. Open the project folder in **VS Code**.
-2. Install the **Live Server** extension (`ms-vscode.live-server`).
-3. Click **"Go Live"** in the bottom status bar, or right-click `index.html` and select **"Open with Live Server"**.
+### 📦 Installation
 
-### Option 2: Python Static Server
-If you have **Python 3** installed,
-Run a local static server directly from your terminal:
-
-* **Python 3:**
-  ```bash
-  python -m http.server 8000
-  ```
-
-### Option 3: Node.js Static Server
-If you have **Node.js** installed,
-Run a local static server directly from your terminal:
-
-* **Node.js:**
-  ```bash
-    npx serve .
-  ```
+1. Clone the repository: `git clone https://github.com/DJERLO/ExpressID_Pro.git`
+2. Navigate to the project directory: `cd ExpressID-Pro`
+3. Install dependencies: `npm install`
+4. Start the development server: `npm run dev`
 ---
 ## 📝 License
 
