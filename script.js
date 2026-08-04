@@ -9,8 +9,15 @@ const config = {
     publicPath: `${window.location.origin}/dist/`,
     debug: false,
     progress: (key, current, total) => {
-        console.log(`Downloading ${key}: ${current} of ${total}`);
-  }
+        const percent = total ? Math.round((current / total) * 100) : 0;
+        
+        // Update console or UI elements
+        const textEl = document.getElementById('loader-text');
+        const barEl = document.getElementById('loader-progress-bar');
+        
+        if (textEl) textEl.textContent = `Downloading AI Assets (${key}...): ${percent}%`;
+        if (barEl) barEl.style.width = `${percent}%`;
+    }
 }
 
 preload(config).then(() => {
@@ -23,13 +30,17 @@ preload(config).then(() => {
  * @returns {Promise<string|null>} - A promise that resolves to a blob URL of the processed image or null if an error occurs.
  */
 async function removePhotoBackground(imageSource) {
-  try {
-    const blob = await removeBackground(imageSource, config);
-    return URL.createObjectURL(blob);
-  } catch (error) {
-    console.error('Background removal failed:', error);
-    return null;
-  }
+    const loader = document.getElementById('bg-loader');
+    if (loader) loader.style.display = 'flex';
+    try {
+        const blob = await removeBackground(imageSource, config);
+        return URL.createObjectURL(blob);
+    } catch (error) {
+        console.error('Background removal failed:', error);
+        return null;
+    } finally {
+        if (loader) loader.style.display = 'none';
+    }
 }
 
 const DPI = 300;

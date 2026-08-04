@@ -204,6 +204,16 @@
       <span id="network-message">You are currently offline. Background removal requires an active internet connection.</span>
     </div>
   </div>
+  <!-- Loader Overlay -->
+  <div id="bg-loader" class="loader-overlay" style="display: none;">
+    <div class="loader-content">
+        <div class="spinner"></div>
+        <p id="loader-text">Loading AI Model Assets...</p>
+        <div class="progress-bar-container">
+            <div id="loader-progress-bar" style="width: 0%;"></div>
+        </div>
+    </div>
+  </div>
   <script type="module" src="script.js"></script>
 </body>
 </html>
