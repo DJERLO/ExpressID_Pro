@@ -92,7 +92,7 @@ const papers = {
     "5R (5 x 7)": [5, 7],
     "A4 (8.27 x 11.69)": [8.27, 11.69],
     "Letter (8.5 x 11)": [8.5, 11],
-    "Folio (8.5 x 14)": [8.5, 13],
+    "Folio (8.5 x 13)": [8.5, 13],
     "Legal (8.5 x 14)": [8.5, 14],
     Custom: [8.5, 11]
 };
@@ -276,7 +276,7 @@ function init() {
     ;
     const debouncedDraw = debounce(draw, 50);
 
-    ['margin', 'spacing', 'brightness', 'contrast', 'customPaperWidth', 'customPaperHeight'].forEach(id => {
+    ['margin', 'spacing', 'brightness', 'contrast', 'zoom', 'landscape', 'guides', 'labels', 'borders', 'customPaperWidth', 'customPaperHeight'].forEach(id => {
         $(id).addEventListener('input', debouncedDraw);
     });
     $('zoom').oninput = e => {
