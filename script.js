@@ -1,4 +1,8 @@
-
+import { removeBackground } from '@imgly/background-removal';
+import 'cropperjs/dist/cropper.css';
+import  Cropper from 'cropperjs';
+import { jsPDF } from 'jspdf';
+import JSZip from 'jszip';
 
 /**
  * Removes the background from an image using the Imgly Background Removal API.
@@ -6,10 +10,9 @@
  * @returns {Promise<string|null>} - A promise that resolves to a blob URL of the processed image or null if an error occurs.
  */
 async function removePhotoBackground(imageSource) {
-  const { removeBackground } = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/+esm');
   try {
     const blob = await removeBackground(imageSource, {
-      publicPath: 'https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/',
+      publicPath: `${window.location.origin}/dist/`, 
       model: 'isnet',
       debug: false
     });
@@ -425,6 +428,7 @@ async function handleRemoveBackground() {
  */
 function updateImageSource(newUrl) {
     const img = new Image();
+    img.crossOrigin = 'anonymous';
     img.onload = () => {
         state.image = img;
         $('thumb').src = newUrl;
@@ -568,17 +572,29 @@ function layoutPhotos(pw, ph, margin, spacing) {
     return pages.length ? pages : [[]]
 }
 function getCroppedCanvas() {
-    if (!state.cropper)
-        return null;
-    return state.cropper.getCroppedCanvas({
+    if (!state.cropper) return null;
+
+    const croppedCanvas = state.cropper.getCroppedCanvas({
         imageSmoothingQuality: 'high'
-    })
+    });
+
+    // Guard against 0 width or 0 height canvas
+    if (!croppedCanvas || croppedCanvas.width === 0 || croppedCanvas.height === 0) {
+        return null;
+    }
+
+    return croppedCanvas
 }
 /**
  * Draws an image into a destination rectangle on canvas with 'object-fit: cover' behavior.
  * This prevents stretching when aspect ratios differ across package sizes.
  */
 function drawImageCover(ctx, img, dx, dy, dw, dh) {
+    // Safety check for empty dimensions or invalid elements
+    if (!img || img.width === 0 || img.height === 0 || dw <= 0 || dh <= 0) {
+        return;
+    }
+
     const imgWidth = img.width;
     const imgHeight = img.height;
     const imgAspect = imgWidth / imgHeight;
@@ -758,7 +774,6 @@ async function downloadPNG() {
     setTimeout(() => URL.revokeObjectURL(a.href), 10000);
 }
 function downloadPDF() {
-    const { jsPDF } = window.jspdf;
     let [wi, hi] = papers[state.paper];
     if (document.getElementById('landscape')?.checked) [wi, hi] = [hi, wi];
 
@@ -1304,5 +1319,3 @@ window.addEventListener('offline', updateOnlineStatus);
 if (!navigator.onLine) {
   updateOnlineStatus();
 }
-setupIdCardPrint();
-draw();
