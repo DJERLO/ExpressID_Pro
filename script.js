@@ -4,6 +4,19 @@ import  Cropper from 'cropperjs';
 import { jsPDF } from 'jspdf';
 import JSZip from 'jszip';
 
+const config = {
+    model: 'isnet',
+    publicPath: `${window.location.origin}/dist/`,
+    debug: false,
+    progress: (key, current, total) => {
+        console.log(`Downloading ${key}: ${current} of ${total}`);
+  }
+}
+
+preload(config).then(() => {
+  console.log("Asset preloading succeeded")
+})
+
 /**
  * Removes the background from an image using the Imgly Background Removal API.
  * @param {string} imageSource - The source URL of the image to process.
@@ -11,12 +24,7 @@ import JSZip from 'jszip';
  */
 async function removePhotoBackground(imageSource) {
   try {
-    const blob = await removeBackground(imageSource, {
-      publicPath: `${window.location.origin}/dist/`, 
-      model: 'isnet',
-      debug: false
-    });
-
+    const blob = await removeBackground(imageSource, config);
     return URL.createObjectURL(blob);
   } catch (error) {
     console.error('Background removal failed:', error);
