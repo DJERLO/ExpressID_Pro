@@ -148,6 +148,12 @@ const presets = {
     Wallet: [2.5, 3.5, "inch", 4],
     A4: [8.27, 11.69, "inch", 1]
 };
+const idCardPresets = {
+    "CR80_Landscape": [3.37, 2.13],
+    "CR80_Portrait": [2.13, 3.37],
+    "CR79": [3.30, 2.05],
+    "CR100": [3.88, 2.63]
+};
 const papers = {
     "3R (3.5 x 5)": [3.5, 5],
     "4R (4 x 6)": [4, 6],
@@ -179,13 +185,14 @@ let state = {
     rotation: 0,
     currentPage: 0,
     stageZoom: 100,
-    originaImage: null,
+    originalImage: null,
     removedBackground: null,
     idCards: {
         front: null,
         back: null,
         cropper: null,
-        active: null
+        active: null,
+        rotation: 0
     },
 };
 const $ = id => document.getElementById(id);
@@ -1097,6 +1104,40 @@ function setupIdCardPrint() {
     $('saveIdCrop').onclick = saveIdCrop;
     $('addIdCards').onclick = addIdCardLayout;
 
+    // Handle ID Card rotation
+    const rotateIdBtn = $('rotateIdCrop');
+    if (rotateIdBtn) {
+        rotateIdBtn.onclick = () => {
+            if (state.idCards.cropper) {
+                state.idCards.rotation = (state.idCards.rotation + 90) % 360;
+                state.idCards.cropper.rotate(90);
+            }
+        };
+    }
+
+    // Handle ID Preset selection change
+    const presetSelect = $('idPresetSelect');
+    if (presetSelect) {
+        presetSelect.onchange = (e) => {
+            const val = e.target.value;
+            if (val === 'Custom') {
+                // Allow free cropping for custom dimensions
+                if (state.idCards.cropper) {
+                    state.idCards.cropper.setAspectRatio(NaN);
+                }
+            } else if (idCardPresets[val]) {
+                const [w, h] = idCardPresets[val];
+                $('idCardWidth').value = w;
+                $('idCardHeight').value = h;
+                
+                // If crop modal is active, update cropper aspect ratio dynamically
+                if (state.idCards.cropper) {
+                    state.idCards.cropper.setAspectRatio(w / h);
+                }
+            }
+        };
+    }
+
     // Helper to update state.sizes whenever ID Card controls change
     const updateIdCardStateAndDraw = () => {
         // Find the active ID card entry in state.sizes (or the target one)
@@ -1128,17 +1169,34 @@ function openIdCrop(side, file) {
     if (!file || !/image\/(jpeg|png)/.test(file.type))
         return alert('Please upload a JPG or PNG.');
     state.idCards.active = side;
+    state.idCards.rotation = 0;
     $('idCropTitle').textContent = (side === 'front' ? 'Crop Front ID' : 'Crop Back ID');
     $('idCropImage').src = URL.createObjectURL(file);
     $('idCropModal').classList.add('open');
     setTimeout( () => {
         if (state.idCards.cropper)
             state.idCards.cropper.destroy();
+
+        const selectedPreset = $('idPresetSelect')?.value;
+        let aspectRatio;
+
+        // If Custom is selected, use NaN for free cropping
+        if (selectedPreset === 'Custom') {
+            aspectRatio = NaN;
+        } else {
+            const w = +$('idCardWidth').value || 3.37;
+            const h = +$('idCardHeight').value || 2.13;
+            aspectRatio = w / h;
+        }
+
         state.idCards.cropper = new Cropper($('idCropImage'),{
-            aspectRatio: +$('idCardWidth').value / +$('idCardHeight').value,
-            viewMode: 1,
+            aspectRatio: aspectRatio,
+            viewMode: 0,
             autoCropArea: 1,
-            background: false
+            background: false,
+            responsive: true,
+            cropBoxMovable: true,
+            cropBoxResizable: true
         });
     }
     , 60);
@@ -1154,9 +1212,13 @@ function saveIdCrop() {
     if (!state.idCards.cropper)
         return;
     const side = state.idCards.active;
+
+    const w = +$('idCardWidth').value || 3.37;
+    const h = +$('idCardHeight').value || 2.13;
+
     const c = state.idCards.cropper.getCroppedCanvas({
-        width: 1011,
-        height: 639,
+        width: Math.round(w * DPI),
+        height: Math.round(h * DPI),
         imageSmoothingQuality: 'high'
     });
     state.idCards[side] = c;
