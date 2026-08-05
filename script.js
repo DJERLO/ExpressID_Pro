@@ -4,30 +4,71 @@ import  Cropper from 'cropperjs';
 import { jsPDF } from 'jspdf';
 import JSZip from 'jszip';
 
-const hasWebGPU = 'gpu' in navigator;
+async function getGpu() {
+    if (!('gpu' in navigator)) {
+        return { hasGpu: false, isDedicated: false, vendor: 'none' };
+    }
 
-// Detect mobile device
-const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
-const hasHighConcurrency = navigator.hardwareConcurrency && navigator.hardwareConcurrency > 4;
+    try {
+        const adapter = await navigator.gpu.requestAdapter();
+        if (!adapter) {
+            return { hasGpu: false, isDedicated: false, vendor: 'none' };
+        }
 
-let selectedDevice, selectedModel;
+        const info = await adapter.requestAdapterInfo();
+        const vendor = (info.vendor || '').toLowerCase();
+        const architecture = (info.architecture || '').toLowerCase();
+        const description = (info.description || '').toLowerCase();
 
-if (hasWebGPU && hasHighConcurrency && !isMobile) {
-    // Tier 3: Powerful Desktop WITH verified WebGPU support -> Full GPU + Highest Quality Model
-    console.log('Tier 3: High-end Desktop (WebGPU + Full IsNet Model)');
-    selectedDevice = 'gpu';
-    selectedModel = 'isnet';
-} else if (!isMobile && hasHighConcurrency) {
-    // Tier 2: Strong PC, but WebGPU flag/environment isn't active -> CPU + Balanced FP16 Model
-    console.log('Tier 2: Mid/High Desktop (CPU Fallback + FP16 Model)');
-    selectedDevice = 'cpu';
-    selectedModel = 'isnet_fp16';
-} else {
-    // Tier 1: Mobile or Low-core device -> CPU + Lightweight Quint8 Model
-    console.log('Tier 1: Mobile / Low-end (CPU + Quint8 Model)');
-    selectedDevice = 'cpu';
-    selectedModel = 'isnet_quint8';
+        // Integrated graphics usually keywords: intel, amd (integrated variants), apple (m-series unified)
+        // Dedicated keywords: nvidia, amd radeon rx, discrete
+        const isIntegrated = 
+            vendor.includes('intel') || 
+            description.includes('intel') || 
+            architecture.includes('intel') ||
+            (vendor.includes('amd') && !description.includes('rx')); // Basic heuristic for integrated AMD Vega/RDNA APUs
+
+        return {
+            hasGpu: true,
+            isDedicated: !isIntegrated,
+            vendor: info.vendor,
+            description: info.description
+        };
+    } catch (err) {
+        console.warn('WebGPU adapter query failed:', err);
+        return { hasGpu: false, isDedicated: false, vendor: 'error' };
+    }
+    
 }
+
+async function determineAppTier() {
+    const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
+    const gpuInfo = await getGpuInfo();
+
+    let selectedDevice = 'cpu';
+    let selectedModel = 'isnet_quint8';
+
+    if (!isMobile && gpuInfo.hasGpu && gpuInfo.isDedicated) {
+        // Tier 3: Verified Dedicated Desktop GPU -> Full WebGPU + Highest Quality Model
+        console.log('Tier 3: Dedicated GPU Desktop (WebGPU + Full IsNet Model)');
+        selectedDevice = 'gpu';
+        selectedModel = 'isnet';
+    } else if (!isMobile && gpuInfo.hasGpu && !gpuInfo.isDedicated) {
+        // Tier 2: Laptop or Integrated Graphics (e.g., Acer Aspire 3) -> Safe CPU/FP16 Configuration
+        console.log('Tier 2: Integrated Graphics / Laptop (Optimized FP16 Model)');
+        selectedDevice = 'cpu';
+        selectedModel = 'isnet_fp16';
+    } else {
+        // Tier 1: Mobile or Low-end Device -> Lightweight Quint8 Model
+        console.log('Tier 1: Mobile / Low-end (CPU + Quint8 Model)');
+        selectedDevice = 'cpu';
+        selectedModel = 'isnet_quint8';
+    }
+
+    return { device: selectedDevice, model: selectedModel };
+}
+
+const { device: selectedDevice, model: selectedModel } = await determineAppTier();
 
 const config = {
     device: selectedDevice,
