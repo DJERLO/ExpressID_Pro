@@ -7,12 +7,12 @@ import JSZip from 'jszip';
 const hasWebGPU = 'gpu' in navigator;
 
 // Detect mobile device
-const isMobile = window.innerWidth <= 768 || /Mobi|Android/i.test(navigator.userAgent);
+const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
 const hasHighConcurrency = navigator.hardwareConcurrency && navigator.hardwareConcurrency > 4;
 
 let selectedDevice, selectedModel;
 
-if (hasWebGPU && !isMobile && hasHighConcurrency) {
+if (hasWebGPU && hasHighConcurrency && !isMobile) {
     // Tier 3: Powerful Desktop WITH verified WebGPU support -> Full GPU + Highest Quality Model
     console.log('Tier 3: High-end Desktop (WebGPU + Full IsNet Model)');
     selectedDevice = 'gpu';
