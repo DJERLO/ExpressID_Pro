@@ -4,26 +4,27 @@ import  Cropper from 'cropperjs';
 import { jsPDF } from 'jspdf';
 import JSZip from 'jszip';
 
-// Detect if the user is on a mobile device based on screen width or user agent
+const hasWebGPU = 'gpu' in navigator;
+
+// Detect mobile device
 const isMobile = window.innerWidth <= 768 || /Mobi|Android/i.test(navigator.userAgent);
 const hasHighConcurrency = navigator.hardwareConcurrency && navigator.hardwareConcurrency > 4;
 
-// Determine execution device and model tiers
 let selectedDevice, selectedModel;
 
-if (!isMobile && hasHighConcurrency) {
-    // Tier 3: Powerful Desktop (GPU + Highest Quality Model)
-    console.log('Tier 3: Powerful Desktop (GPU + Highest Quality Model)');
+if (hasWebGPU && !isMobile && hasHighConcurrency) {
+    // Tier 3: Powerful Desktop WITH verified WebGPU support -> Full GPU + Highest Quality Model
+    console.log('Tier 3: High-end Desktop (WebGPU + Full IsNet Model)');
     selectedDevice = 'gpu';
     selectedModel = 'isnet';
-} else if (!isMobile || hasHighConcurrency) {
-    // Tier 2: Mid-range Desktop or High-end Mobile (FP16 Model)
-    console.log('Tier 2: Mid-range Desktop or High-end Mobile (FP16 Model)');
-    selectedDevice = isMobile ? 'cpu' : 'gpu';
+} else if (!isMobile && hasHighConcurrency) {
+    // Tier 2: Strong PC, but WebGPU flag/environment isn't active -> CPU + Balanced FP16 Model
+    console.log('Tier 2: Mid/High Desktop (CPU Fallback + FP16 Model)');
+    selectedDevice = 'cpu';
     selectedModel = 'isnet_fp16';
 } else {
-    // Tier 1: Low-end Mobile (CPU + Quint8 Lightweight Model)
-    console.log('Tier 1: Low-end Mobile (CPU + Quint8 Lightweight Model)');
+    // Tier 1: Mobile or Low-core device -> CPU + Lightweight Quint8 Model
+    console.log('Tier 1: Mobile / Low-end (CPU + Quint8 Model)');
     selectedDevice = 'cpu';
     selectedModel = 'isnet_quint8';
 }
@@ -36,18 +37,19 @@ const config = {
     progress: (key, current, total) => {
         const percent = total ? Math.round((current / total) * 100) : 0;
         
-        // Update console or UI elements
         const textEl = document.getElementById('loader-text');
         const barEl = document.getElementById('loader-progress-bar');
         
         if (textEl) textEl.textContent = `Downloading AI Assets (${key}...): ${percent}%`;
         if (barEl) barEl.style.width = `${percent}%`;
     }
-}
+};
 
 preload(config).then(() => {
-  console.log("Asset preloading succeeded")
-})
+  console.log("Asset preloading succeeded");
+}).catch((err) => {
+  console.error("Preloading failed, falling back to safe CPU config:", err);
+});
 
 // Global debounce utility
 function debounce(func, wait) {
