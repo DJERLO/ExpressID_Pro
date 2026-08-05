@@ -4,12 +4,36 @@ import  Cropper from 'cropperjs';
 import { jsPDF } from 'jspdf';
 import JSZip from 'jszip';
 
+// Detect if the user is on a mobile device based on screen width or user agent
+const isMobile = window.innerWidth <= 768 || /Mobi|Android/i.test(navigator.userAgent);
+const hasHighConcurrency = navigator.hardwareConcurrency && navigator.hardwareConcurrency > 4;
+
+// Determine execution device and model tiers
+let selectedDevice, selectedModel;
+
+if (!isMobile && hasHighConcurrency) {
+    // Tier 3: Powerful Desktop (GPU + Highest Quality Model)
+    console.log('Tier 3: Powerful Desktop (GPU + Highest Quality Model)');
+    selectedDevice = 'gpu';
+    selectedModel = 'isnet';
+} else if (!isMobile || hasHighConcurrency) {
+    // Tier 2: Mid-range Desktop or High-end Mobile (FP16 Model)
+    console.log('Tier 2: Mid-range Desktop or High-end Mobile (FP16 Model)');
+    selectedDevice = isMobile ? 'cpu' : 'gpu';
+    selectedModel = 'isnet_fp16';
+} else {
+    // Tier 1: Low-end Mobile (CPU + Quint8 Lightweight Model)
+    console.log('Tier 1: Low-end Mobile (CPU + Quint8 Lightweight Model)');
+    selectedDevice = 'cpu';
+    selectedModel = 'isnet_quint8';
+}
+
 const config = {
-    model: 'isnet',
+    device: selectedDevice,
+    model: selectedModel,
     publicPath: `${window.location.origin}/dist/`,
     debug: false,
     progress: (key, current, total) => {
-        console.log(`Downloading ${key}: ${current} of ${total}`);
         const percent = total ? Math.round((current / total) * 100) : 0;
         
         // Update console or UI elements
