@@ -15,7 +15,8 @@ async function getGpuInfo() {
             return { hasGpu: false, isDedicated: false, vendor: 'none' };
         }
 
-        const info = await adapter.requestAdapterInfo();
+        // Fix: Use adapter.info synchronously instead of requestAdapterInfo()
+        const info = adapter.info || {};
         const vendor = (info.vendor || '').toLowerCase();
         const architecture = (info.architecture || '').toLowerCase();
         const description = (info.description || '').toLowerCase();
@@ -31,8 +32,8 @@ async function getGpuInfo() {
         return {
             hasGpu: true,
             isDedicated: !isIntegrated,
-            vendor: info.vendor,
-            description: info.description
+            vendor: info.vendor || 'unknown',
+            description: info.description || 'unknown'
         };
     } catch (err) {
         console.warn('WebGPU adapter query failed:', err);
