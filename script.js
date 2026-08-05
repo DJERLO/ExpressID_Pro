@@ -825,11 +825,6 @@ function draw() {
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(it.x, it.y, it.w, it.h);
 
-            if ($('borders')?.checked) {
-                ctx.strokeStyle = '#000000';
-                ctx.lineWidth = 10;
-                ctx.strokeRect(it.x, it.y, it.w, it.h);
-            }
 
             if (packageImg) {
                 ctx.filter = `brightness(${$('brightness').value}%) contrast(${$('contrast').value}%)`;
@@ -854,6 +849,12 @@ function draw() {
                 ctx.font = 'bold 34px Arial';
                 ctx.textAlign = 'left';
                 ctx.fillText(it.label, it.x + 18, it.y + 44);
+            }
+
+            if ($('borders')?.checked) {
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 10;
+                ctx.strokeRect(it.x, it.y, it.w, it.h);
             }
         }
 
@@ -1012,7 +1013,6 @@ function printCanvas() {
 }
 init();
 
-// PAPAJEK PRINT: ID card front/back uploader with independent crop support
 state.idCards = {
     front: null,
     back: null,
