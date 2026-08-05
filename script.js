@@ -87,12 +87,6 @@ const config = {
     }
 };
 
-preload(config).then(() => {
-  console.log("Asset preloading succeeded");
-}).catch((err) => {
-  console.error("Preloading failed, falling back to safe CPU config:", err);
-});
-
 // Global debounce utility
 function debounce(func, wait) {
     let timeout;
@@ -184,7 +178,15 @@ let state = {
     flip: 1,
     rotation: 0,
     currentPage: 0,
-    stageZoom: 100 // Stage preview zoom scale percentage
+    stageZoom: 100,
+    originaImage: null,
+    removedBackground: null,
+    idCards: {
+        front: null,
+        back: null,
+        cropper: null,
+        active: null
+    },
 };
 const $ = id => document.getElementById(id);
 function toIn(v, u) {
@@ -273,21 +275,7 @@ function init() {
     if (loader) loader.style.display = 'flex';
     // Trigger preloading of AI background removal model assets in the background if online
     if (navigator.onLine) {
-        preload({
-            publicPath: `${window.location.origin}/dist/`,
-            model: 'isnet',
-            debug: false,
-            progress: (key, current, total) => {
-                const percent = total ? Math.round((current / total) * 100) : 0;
-                
-                // Update your loader UI text and bar elements
-                const textEl = document.getElementById('loader-text');
-                const barEl = document.getElementById('loader-progress-bar');
-                
-                if (textEl) textEl.textContent = `Downloading AI Assets (${key}): ${percent}%`;
-                if (barEl) barEl.style.width = `${percent}%`;
-            }
-        })
+        preload(config)
         .then(() => {
             console.log("Asset preloading succeeded");
         })
@@ -1081,12 +1069,6 @@ function printCanvas() {
 }
 init();
 
-state.idCards = {
-    front: null,
-    back: null,
-    cropper: null,
-    active: null
-};
 function setupIdCardPrint() {
     const bind = (side) => {
         const input = $(side + 'Input'),
@@ -1333,7 +1315,7 @@ function drawPhotoOverlays(ctx, photoX, photoY, photoWidth, photoHeight) {
                 photoX + photoWidth / 2,
                 bannerY + bannerHeight / 2
             );
-
+        }
         // 2. Signature Overlay
         if (showSig && sigCanvas) {
             const sigWidth = photoWidth * 0.75;
@@ -1343,5 +1325,4 @@ function drawPhotoOverlays(ctx, photoX, photoY, photoWidth, photoHeight) {
 
             ctx.drawImage(sigCanvas, sigX, sigY, sigWidth, sigHeight);
         }
-    }
 }
