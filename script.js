@@ -155,10 +155,11 @@ const presets = {
     A4: [8.27, 11.69, "inch", 1]
 };
 const idCardPresets = {
-    "CR80_Landscape": [3.37, 2.13],
-    "CR80_Portrait": [2.13, 3.37],
-    "CR79": [3.30, 2.05],
-    "CR100": [3.88, 2.63]
+    "CR80 Landscape (3.37 × 2.13 in)": [3.37, 2.13],
+    "CR80 Portrait (2.13 × 3.37 in)": [2.13, 3.37],
+    "CR79 Access (3.30 × 2.05 in)": [3.30, 2.05],
+    "CR100 Oversized (3.88 × 2.63 in)": [3.88, 2.63],
+    "Custom": [0, 0]
 };
 const papers = {
     "3R (3.5 x 5)": [3.5, 5],
@@ -360,6 +361,13 @@ function init() {
         $('presetGrid').appendChild(b)
     }
     );
+    Object.keys(idCardPresets).forEach(k => {
+        let select = document.getElementById('idPresetSelect');
+        let option = document.createElement('option');
+        option.value = k;
+        option.textContent = k;
+        select.appendChild(option);
+    });
     Object.keys(papers).forEach(k => {
         let b = document.createElement('button');
         b.textContent = k;
