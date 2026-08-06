@@ -102,7 +102,10 @@ function debounce(func, wait) {
  */
 async function removePhotoBackground(imageSource) {
     const loader = document.getElementById('bg-loader');
-    if (loader) loader.style.display = 'flex';
+    if (loader) {
+        loader.style.display = 'flex';
+        loader.removeAttribute('inert');
+    }
     try {
         const blob = await removeBackground(imageSource, config);
         return URL.createObjectURL(blob);
@@ -110,7 +113,10 @@ async function removePhotoBackground(imageSource) {
         console.error('Background removal failed:', error);
         return null;
     } finally {
-        if (loader) loader.style.display = 'none';
+        if (loader) {
+            loader.style.display = 'none';
+            loader.setAttribute('inert', '');
+        }
     }
 }
 
@@ -254,16 +260,19 @@ function initNetworkListener() {
         // 2. Trigger status modal only on active connection changes or when offline
         if (!isOnline) {
             modal.className = 'network-modal offline';
+            modal.removeAttribute('inert');
             icon.textContent = '📡';
             msg.textContent = 'You lost internet connection.';
         } else if (e && e.type === 'online') {
             modal.className = 'network-modal online';
+            modal.removeAttribute('inert');
             icon.textContent = '⚡';
             msg.textContent = 'You are back online!';
 
             // Auto-hide the "Back Online" message after 3.5 seconds
             setTimeout(() => {
                 modal.classList.add('hidden');
+                modal.setAttribute('inert', '');
             }, 3500);
         }
     }
@@ -279,7 +288,10 @@ function initNetworkListener() {
 }
 function init() {
     const loader = document.getElementById('bg-loader');
-    if (loader) loader.style.display = 'flex';
+    if (loader) {
+        loader.style.display = 'flex';
+        loader.removeAttribute('inert');
+    }
     // Trigger preloading of AI background removal model assets in the background if online
     if (navigator.onLine) {
         preload(config)
@@ -295,7 +307,10 @@ function init() {
         });
     } else {
         // Hide immediately if offline
-        if (loader) loader.style.display = 'none';
+        if (loader) {
+            loader.style.display = 'none';
+            loader.setAttribute('inert', '');
+        }
     }
 
     $('currentYear').textContent = new Date().getFullYear();
@@ -330,6 +345,7 @@ function init() {
         
         b.type = 'button';
         b.dataset.packageKey = k;
+        b.setAttribute('aria-label', `Select ${k}: ${desc}`);
         b.innerHTML = `<b>${k}</b><br><small>${desc}</small>`;
         b.onclick = () => selectPackage(k);
         
@@ -337,7 +353,9 @@ function init() {
     });
     Object.keys(presets).forEach(k => {
         let b = document.createElement('button');
+        b.type = 'button';
         b.textContent = k;
+        b.setAttribute('aria-label', `Apply preset size ${k}`);
         b.onclick = () => selectPreset(k);
         $('presetGrid').appendChild(b)
     }
@@ -345,6 +363,7 @@ function init() {
     Object.keys(papers).forEach(k => {
         let b = document.createElement('button');
         b.textContent = k;
+        b.type = 'button';
         b.onclick = () => {
             state.paper = k;
             renderButtons();
@@ -483,7 +502,7 @@ function renderSizeList() {
     state.sizes.forEach( (s, i) => {
         let d = document.createElement('div');
         d.className = 'size-item';
-        d.innerHTML = `<div><b>${s.label}</b><br><small>${s.w} × ${s.h} ${s.unit} · ${s.qty} copies</small></div><button class="remove">×</button>`;
+        d.innerHTML = `<div><b>${s.label}</b><br><small>${s.w} × ${s.h} ${s.unit} · ${s.qty} copies</small></div><button type="button" class="remove" aria-label="Remove ${s.label} size from list">×</button>`;
         d.querySelector('button').onclick = () => {
             state.sizes.splice(i, 1);
             renderSizeList();
@@ -1173,7 +1192,9 @@ function openIdCrop(side, file) {
     $('idCropTitle').textContent = (side === 'front' ? 'Crop Front ID' : 'Crop Back ID');
     $('idCropImage').src = URL.createObjectURL(file);
     $('idCropModal').classList.add('open');
+    $('idCropModal').removeAttribute('inert');
     setTimeout( () => {
+        $('cancelIdCrop').focus();
         if (state.idCards.cropper)
             state.idCards.cropper.destroy();
 
@@ -1207,6 +1228,9 @@ function closeIdCrop() {
         state.idCards.cropper = null
     }
     $('idCropModal').classList.remove('open')
+    $('idCropModal').setAttribute('inert', '')
+    const dropTarget = $('frontDrop') || $('backDrop');
+    if (dropTarget) dropTarget.focus();
 }
 function saveIdCrop() {
     if (!state.idCards.cropper)
