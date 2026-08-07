@@ -213,7 +213,9 @@ function toIn(v, u) {
     return u === 'mm' ? v / 25.4 : u === 'cm' ? v / 2.54 : v
 }
 
-// Update canvas transform to handle both zoom and pan together
+/**
+ * Update Canvas Transform when Stage Zoom changes
+ */
 function updateCanvasTransform() {
     const canvas = $('previewCanvas');
     const label = $('stageZoomLabel');
@@ -226,7 +228,10 @@ function updateCanvasTransform() {
     }
 }
 
-// Add Zoom Handler Function
+/**
+ * Update Stage Zoom
+ * @param {*} newZoom 
+ */
 function updateStageZoom(newZoom) {
     // Clamp zoom level between 30% and 300%
     state.stageZoom = Math.min(Math.max(newZoom, 30), 300);
@@ -302,6 +307,23 @@ function setupCanvasPanning() {
     }
 }
 
+/**
+ * Snap canvas to center
+ * @returns 
+ */
+function centerCanvas() {
+    const stage = document.querySelector('.preview-stage');
+    const canvas = $('previewCanvas');
+    
+    if (!stage || !canvas) return;
+
+    // Center the canvas
+    state.panX = 0;
+    state.panY = 0;
+
+    updateCanvasTransform();
+}
+
 // Bind controls inside init() function
 function setupStageZoom() {
     const btnIn = $('stageZoomIn');
@@ -310,7 +332,12 @@ function setupStageZoom() {
 
     if (btnIn) btnIn.onclick = () => updateStageZoom(state.stageZoom + 15);
     if (btnOut) btnOut.onclick = () => updateStageZoom(state.stageZoom - 15);
-    if (btnReset) btnReset.onclick = () => updateStageZoom(100);
+    if (btnReset) {
+        btnReset.onclick = () => {
+            updateStageZoom(100); // Reset scale
+            centerCanvas();       // Snap to center
+        };
+    }
 
     // Optional: Mouse wheel zoom over preview stage (Hold Ctrl / Cmd + Scroll)
     const stage = document.querySelector('.preview-stage');
