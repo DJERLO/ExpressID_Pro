@@ -175,14 +175,16 @@
           <button id="printBtn">Print</button>
         </div>
       </header>
-      <div class="preview-stage">
-        <div class="stage-zoom-controls">
-          <button id="stageZoomOut" title="Zoom Out" aria-label="Zoom Out" type="button">−</button>
-          <span id="stageZoomLabel" aria-live="polite">100%</span>
-          <button id="stageZoomIn" title="Zoom In" aria-label="Zoom In" type="button">+</button>
-          <button id="stageZoomReset" title="Reset Zoom & Fit" aria-label="Reset zoom and fit to canvas" type="button">Fit</button>
+      <div class="preview-stage" id="previewStage">
+        <div class="canvas-container" id="canvasContainer">
+          <div class="stage-zoom-controls">
+            <button id="stageZoomOut" title="Zoom Out" aria-label="Zoom Out" type="button">−</button>
+            <span id="stageZoomLabel" aria-live="polite">100%</span>
+            <button id="stageZoomIn" title="Zoom In" aria-label="Zoom In" type="button">+</button>
+            <button id="stageZoomReset" title="Reset Zoom & Fit" aria-label="Reset zoom and fit to canvas" type="button">Fit</button>
+          </div>
+          <canvas id="previewCanvas" role="img" aria-label="Print-ready photo layout preview matrix"></canvas>
         </div>
-        <canvas id="previewCanvas" role="img" aria-label="Print-ready photo layout preview matrix"></canvas>
       </div>
       <footer class="powered">
         <div class="footer-content">
@@ -226,5 +228,6 @@
     </div>
   </div>
   <script type="module" src="script.js"></script>
+  <script src="https://unpkg.com/konva@10/konva.min.js"></script>
 </body>
 </html>

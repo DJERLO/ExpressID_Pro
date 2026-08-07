@@ -201,6 +201,11 @@ let state = {
         active: null,
         rotation: 0
     },
+    panX: 0,
+    panY: 0,
+    isPanning: false,
+    startX: 0,
+    startY: 0,
 };
 const $ = id => document.getElementById(id);
 function toIn(v, u) {
@@ -208,20 +213,92 @@ function toIn(v, u) {
     return u === 'mm' ? v / 25.4 : u === 'cm' ? v / 2.54 : v
 }
 
-// Add Zoom Handler Function
-function updateStageZoom(newZoom) {
-    // Clamp zoom level between 30% and 300%
-    state.stageZoom = Math.min(Math.max(newZoom, 30), 300);
-    
+// Update canvas transform to handle both zoom and pan together
+function updateCanvasTransform() {
     const canvas = $('previewCanvas');
     const label = $('stageZoomLabel');
     
     if (canvas) {
-        // Apply CSS scale transform to the preview canvas
-        canvas.style.transform = `scale(${state.stageZoom / 100})`;
+        canvas.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.stageZoom / 100})`;
     }
     if (label) {
         label.textContent = `${Math.round(state.stageZoom)}%`;
+    }
+}
+
+// Add Zoom Handler Function
+function updateStageZoom(newZoom) {
+    // Clamp zoom level between 30% and 300%
+    state.stageZoom = Math.min(Math.max(newZoom, 30), 300);
+    updateCanvasTransform();
+}
+
+// Setup Draggable Canvas Panning
+function setupCanvasPanning() {
+    const stage = document.querySelector('.preview-stage');
+    const canvas = $('previewCanvas');
+    if (!stage || !canvas) return;
+
+    const startPan = (clientX, clientY) => {
+        state.isPanning = true;
+        state.startX = clientX - state.panX;
+        state.startY = clientY - state.panY;
+        stage.style.cursor = 'grabbing';
+        canvas.style.cursor = 'grabbing';
+    };
+
+    const movePan = (clientX, clientY) => {
+        if (!state.isPanning) return;
+        state.panX = clientX - state.startX;
+        state.panY = clientY - state.startY;
+        updateCanvasTransform();
+    };
+
+    const endPan = () => {
+        if (!state.isPanning) return;
+        state.isPanning = false;
+        stage.style.cursor = 'grab';
+        canvas.style.cursor = 'grab';
+    };
+
+    // Mouse Events
+    stage.addEventListener('mousedown', (e) => {
+        // Only trigger pan on left click and if clicking stage or canvas directly
+        if (e.button !== 0) return;
+        startPan(e.clientX, e.clientY);
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        movePan(e.clientX, e.clientY);
+    });
+
+    window.addEventListener('mouseup', endPan);
+
+    // Touch Events for Mobile / Tablets
+    stage.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+            startPan(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1) {
+            movePan(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchend', endPan);
+
+    // Reset pan when clicking 'Fit' (Zoom Reset)
+    const btnReset = $('stageZoomReset');
+    if (btnReset) {
+        const originalOnClick = btnReset.onclick;
+        btnReset.onclick = (e) => {
+            state.panX = 0;
+            state.panY = 0;
+            updateStageZoom(100);
+            if (originalOnClick) originalOnClick(e);
+        };
     }
 }
 
@@ -452,6 +529,7 @@ function init() {
     initNetworkListener();
     setupUpload();
     setupIdCardPrint();
+    setupCanvasPanning();
     setupStageZoom();
     initSignaturePad();
     renderButtons();
