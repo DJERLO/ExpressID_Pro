@@ -29,7 +29,10 @@ export default defineConfig({
       workbox: {
         // Include heavy files like WASM/ONNX if you want them available offline, 
         // though keep an eye on caching limits.
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm,onnx,json}'],
+        globPatterns: [
+          '**/*.{js,css,html,ico,png,svg,wasm,onnx,json,bin,data}',
+          'dist/**/*'
+        ],
         maximumFileSizeToCacheInBytes: 50 * 1024 * 1024,
         
         // Crucial for SPA routing on Vercel so offline reloads don't hit 404s
@@ -37,6 +40,21 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/api/],
         
         runtimeCaching: [
+         {
+            // Cache ExpressID models
+            urlPattern: /\/dist\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'imgly-models-cache',
+              expiration: {
+                maxEntries: 150,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 Days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
           {
             // Cache external assets or fonts if any
             urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
