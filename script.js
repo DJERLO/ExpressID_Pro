@@ -122,6 +122,7 @@ async function removePhotoBackground(imageSource) {
 }
 
 const DPI = 300;
+const RUSH_PACKAGE_KEY = 'CUSTOM_RUSH_PACKAGES';
 const packages = {
     "Package A": [
         { w: 1, h: 1, unit: "inch", qty: 8, label: "1 x 1" },
@@ -145,6 +146,262 @@ const packages = {
         { w: 35, h: 45, unit: "mm", qty: 6, label: "Passport" }
     ]
 };
+
+/**
+ *  
+ * @param {string} RUSH_PACKAGE_KEY
+ * @returns 
+ */
+function getAllPackages() {
+    let custom = {};
+    try {
+        const stored = localStorage.getItem(RUSH_PACKAGE_KEY);
+        if (stored) {
+            custom = JSON.parse(stored);
+        }
+    } catch (e) {
+        console.error("Failed to read custom packages from localStorage:", e);
+    }
+    return { ...packages, ...custom };
+}
+
+/**
+ * Saves the custom packages to localStorage.
+ * @param {*} customPackagesObj
+ * @returns {void}
+ */
+function saveCustomPackagesToStorage(customPackagesObj) {
+    try {
+        localStorage.setItem(RUSH_PACKAGE_KEY, JSON.stringify(customPackagesObj));
+    } catch (e) {
+        console.error("Failed to save custom packages to localStorage:", e);
+    }
+}
+
+
+
+function deleteCustomPackage(pkgKey) {
+    if (!confirm(`Delete custom package "${pkgKey}"?`)) return;
+    try {
+        const stored = localStorage.getItem(RUSH_PACKAGE_KEY);
+        let custom = stored ? JSON.parse(stored) : {};
+        delete custom[pkgKey];
+        saveCustomPackagesToStorage(custom);
+        renderPackageGrid();
+    } catch (e) {
+        console.error("Failed to delete custom package:", e);
+    }
+}
+
+// Render Rush Package grid buttons dynamically
+/**
+ * Dynamically renders all built-in and custom packages into #packageGrid,
+ * complete with delete buttons on custom entries.
+ */
+function renderPackageGrid(activeKey = null) {
+    const grid = $('packageGrid');
+    if (!grid) return;
+    
+    grid.innerHTML = '';
+    const allPkgs = getAllPackages();
+
+    Object.keys(allPkgs).forEach(k => {
+        const isCustom = !packages.hasOwnProperty(k); // Check if custom or built-in
+        const itemArray = allPkgs[k];
+        const desc = itemArray.map(i => `${i.label} (${i.qty})`).join(' + ');
+
+        const container = document.createElement('div');
+        container.style.position = 'relative';
+        container.style.display = 'flex';
+
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = `${isCustom ? 'btn-outline-light' : ''}`;
+        b.style.width = '100%';
+        b.dataset.packageKey = k;
+        if (k === activeKey) b.classList.toggle('active', b.dataset.packageKey === activeKey);
+        b.setAttribute('aria-label', `Select ${k}: ${desc}`);
+        b.innerHTML = `<b>${k}</b><br><small>${desc}</small>`;
+        b.onclick = () => selectPackage(k);
+
+        container.appendChild(b);
+
+        // Append a delete icon button if it's a custom package
+        if (isCustom) {
+            const delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.className = 'btn-del-custom';
+            delBtn.title = `Delete ${k}`;
+            delBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px; pointer-events:none;">close</span>`;
+            
+            // Prevent selecting package when clicking delete button
+            delBtn.onclick = (e) => {
+                e.stopPropagation();
+                deleteCustomPackage(k);
+            };
+            container.appendChild(delBtn);
+        }
+
+        grid.appendChild(container);
+    });
+}
+
+/**
+ * Handles modal logic for creating custom packages with Quick-Add Presets
+ * and Collapsible Accordion Rows.
+ */
+function setupCustomPackageModal() {
+    const modal = $('addPackageModal');
+    const openBtn = $('openAddPackageBtn');
+    const closeBtn = $('cancelAddPackageBtn');
+    const saveBtn = $('saveCustomPackageBtn');
+    const addRowBtn = $('addPkgItemRowBtn');
+    const container = $('customPkgItemsContainer');
+
+    if (!modal || !openBtn) return;
+
+    // Helper: Create a collapsible accordion row item inside the modal
+    function createRow(w = 2, h = 2, unit = 'inch', qty = 2, label = '2 x 2', startOpen = true) {
+        const row = document.createElement('div');
+        row.className = `pkg-row-accordion pkg-row ${startOpen ? 'open' : ''}`;
+
+        row.innerHTML = `
+            <div class="pkg-row-header">
+                <div class="pkg-row-title-wrap">
+                    <span class="material-symbols-outlined pkg-row-chevron">expand_more</span>
+                    <div>
+                        <div class="pkg-row-title">${label}</div>
+                        <div class="pkg-row-summary">${w} × ${h} ${unit} · Qty: ${qty}</div>
+                    </div>
+                </div>
+                <div class="pkg-row-actions">
+                    <button type="button" class="btn btn-outline-danger btn-del-row" style="min-height: 32px; width: 32px; padding: 0; border-radius: 10px;" title="Delete size item">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+                    </button>
+                </div>
+            </div>
+            <div class="pkg-row-body form-grid">
+                <label>Width<input type="number" class="pkg-w" step="0.01" value="${w}" /></label>
+                <label>Height<input type="number" class="pkg-h" step="0.01" value="${h}" /></label>
+                <label>Unit
+                    <select class="pkg-unit">
+                        <option ${unit==='inch'?'selected':''}>inch</option>
+                        <option ${unit==='mm'?'selected':''}>mm</option>
+                        <option ${unit==='cm'?'selected':''}>cm</option>
+                    </select>
+                </label>
+                <label>Qty<input type="number" class="pkg-qty" min="1" value="${qty}" /></label>
+                <label style="grid-column: span 2;">Label<input type="text" class="pkg-label" value="${label}" placeholder="e.g. 2 x 2" /></label>
+            </div>
+        `;
+
+        const header = row.querySelector('.pkg-row-header');
+        const delBtn = row.querySelector('.btn-del-row');
+        const titleEl = row.querySelector('.pkg-row-title');
+        const summaryEl = row.querySelector('.pkg-row-summary');
+
+        // Toggle Expand / Collapse
+        header.addEventListener('click', (e) => {
+            if (e.target.closest('.btn-del-row')) return;
+            row.classList.toggle('open');
+        });
+
+        // Delete Row
+        delBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            row.remove();
+        });
+
+        // Dynamic Header Summary Update on Input Change
+        const updateHeader = () => {
+            const curW = row.querySelector('.pkg-w').value || 0;
+            const curH = row.querySelector('.pkg-h').value || 0;
+            const curUnit = row.querySelector('.pkg-unit').value;
+            const curQty = row.querySelector('.pkg-qty').value || 0;
+            const curLabel = row.querySelector('.pkg-label').value.trim() || `${curW} x ${curH}`;
+
+            titleEl.textContent = curLabel;
+            summaryEl.textContent = `${curW} × ${curH} ${curUnit} · Qty: ${curQty}`;
+        };
+
+        row.querySelectorAll('input, select').forEach(input => {
+            input.addEventListener('input', updateHeader);
+        });
+
+        container.appendChild(row);
+    }
+
+    // Modal Open Handler
+    openBtn.onclick = () => {
+        $('customPkgName').value = '';
+        container.innerHTML = '';
+        modal.classList.add('open');
+        modal.removeAttribute('inert');
+    };
+
+    // Modal Close Handler
+    closeBtn.onclick = () => {
+        modal.classList.remove('open');
+        modal.setAttribute('inert', '');
+    };
+
+    addRowBtn.onclick = () => createRow(1, 1, 'inch', 2, 'Custom', true);
+
+    // Quick-Add Preset Toolbar Handler
+    const presetToolbar = $('modalPresetToolbar');
+    if (presetToolbar) {
+        presetToolbar.innerHTML = '';
+        
+        Object.keys(presets).forEach(presetKey => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-outline-info';
+            btn.style.fontSize = '11px';
+            btn.style.padding = '4px 8px';
+            btn.style.minHeight = '32px';
+            btn.textContent = presetKey;
+            
+            btn.onclick = () => {
+                const [w, h, unit, qty] = presets[presetKey];
+                createRow(w, h, unit, qty, presetKey, false);
+            };
+
+            presetToolbar.appendChild(btn);
+        });
+    }
+
+    // Save Custom Package Handler
+    saveBtn.onclick = () => {
+        const name = $('customPkgName').value.trim();
+        if (!name) return alert('Please enter a package name.');
+
+        const rows = container.querySelectorAll('.pkg-row');
+        const items = [];
+
+        rows.forEach(r => {
+            const w = +r.querySelector('.pkg-w').value || 1;
+            const h = +r.querySelector('.pkg-h').value || 1;
+            const unit = r.querySelector('.pkg-unit').value;
+            const qty = +r.querySelector('.pkg-qty').value || 1;
+            const label = r.querySelector('.pkg-label').value.trim() || `${w} x ${h}`;
+            items.push({ w, h, unit, qty, label });
+        });
+
+        if (!items.length) return alert('Please add at least one size item to the package.');
+
+        const stored = localStorage.getItem(RUSH_PACKAGE_KEY);
+        let custom = stored ? JSON.parse(stored) : {};
+        custom[name] = items;
+
+        saveCustomPackagesToStorage(custom);
+        modal.classList.remove('open');
+        modal.setAttribute('inert', '');
+        
+        renderPackageGrid(name);
+        selectPackage(name);
+    };
+}
+
 const presets = {
     "1x1": [1, 1, "inch", 8],
     "1.5x1.5": [1.5, 1.5, "inch", 6],
@@ -464,20 +721,6 @@ function init() {
         });
     });
 
-    Object.keys(packages).forEach(k => {
-        let b = document.createElement('button');
-        
-        // Summary subtext (e.g., "2x2 (2) + 1x1 (4)")
-        let desc = packages[k].map(i => `${i.label} (${i.qty})`).join(' + ');
-        
-        b.type = 'button';
-        b.dataset.packageKey = k;
-        b.setAttribute('aria-label', `Select ${k}: ${desc}`);
-        b.innerHTML = `<b>${k}</b><br><small>${desc}</small>`;
-        b.onclick = () => selectPackage(k);
-        
-        $('packageGrid').appendChild(b);
-    });
     Object.keys(presets).forEach(k => {
         let b = document.createElement('button');
         b.type = 'button';
@@ -584,6 +827,8 @@ function init() {
     setupIdCardPrint();
     setupCanvasPanning();
     setupStageZoom();
+    renderPackageGrid();
+    setupCustomPackageModal();
     initSignaturePad();
     renderButtons();
     renderSizeList();
@@ -618,7 +863,7 @@ function selectPreset(k) {
 
     renderSizeList();
     renderButtons(k);
-    renderPackageButtons(null);
+    renderPackageGrid(null);
     draw()
 }
 function renderButtons(active = "2x2") {
@@ -1511,7 +1756,8 @@ function getCurrentAspectRatio() {
 }
 
 function selectPackage(pkgKey) {
-    let items = packages[pkgKey];
+    let allPkgs = getAllPackages();
+    let items = allPkgs[pkgKey];
     if (!items) return;
 
     const existingIdCards = state.sizes.filter(s => s.idCard);
@@ -1531,18 +1777,10 @@ function selectPackage(pkgKey) {
     }
 
     renderSizeList();
-    renderPackageButtons(pkgKey);
+    renderPackageGrid(pkgKey);
     // De-highlight standard preset buttons (since a package is selected)
     [...$('presetGrid').children].forEach(b => b.classList.remove('active'));
     draw();
-}
-
-function renderPackageButtons(activeKey) {
-    const pkgGrid = $('packageGrid');
-    if (!pkgGrid) return;
-    [...pkgGrid.children].forEach(b => {
-        b.classList.toggle('active', b.dataset.packageKey === activeKey);
-    });
 }
 function initSignaturePad() {
     sigCanvas = $('sigCanvas');
