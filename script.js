@@ -98,7 +98,7 @@ function debounce(func, wait) {
 /**
  * Removes the background from an image using the Imgly Background Removal API.
  * @param {string} imageSource - The source URL of the image to process.
- * @returns {Promise<string>} - A promise that resolves to the processed image source URL.
+ * @returns {Promise<string> | null} - A promise that resolves to the URL of the processed image.
  */
 async function removePhotoBackground(imageSource) {
     const loader = document.getElementById('bg-loader');
@@ -111,7 +111,7 @@ async function removePhotoBackground(imageSource) {
         return URL.createObjectURL(blob);
     } catch (error) {
         console.error('Background removal failed:', error);
-        return imageSource;
+        return null;
     } finally {
         if (loader) {
             loader.style.display = 'none';
@@ -356,6 +356,7 @@ function setupStageZoom() {
  * Network Status Handler
  */
 function initNetworkListener() {
+    const loader = $('bg-loader');
     const modal = $('network-modal');
     const msg = $('network-message');
     const icon = $('network-icon');
@@ -363,7 +364,7 @@ function initNetworkListener() {
     function updateNetworkStatus(e) {
         const isOnline = navigator.onLine;
 
-        // 2. Trigger status modal only on active connection changes or when offline
+        // 1. Trigger status modal only on active connection changes or when offline
         if (!isOnline) {
             modal.className = 'network-modal offline';
             modal.removeAttribute('inert');
@@ -374,6 +375,13 @@ function initNetworkListener() {
             modal.removeAttribute('inert');
             icon.textContent = '⚡';
             msg.textContent = 'You are back online!';
+
+            if (loader) {
+                loader.style.display = 'flex';
+                loader.removeAttribute('inert');
+            }
+
+            // 2. Trigger preloading of AI background removal model assets
             preload(config)
             .then(() => {
                 console.log("Asset preloading succeeded");
@@ -692,18 +700,7 @@ async function handleRemoveBackground() {
             updateImageSource(processedUrl);
         } else {
             // If the background removal fails, show an alert
-            alert('Could not remove background. Please try another image.');
-            preload(config)
-            .then(() => {
-                console.log("Asset preloading succeeded");
-            })
-            .catch(err => {
-                console.log('Background preload skipped or failed:', err);
-            })
-            .finally(() => {
-                // 3. Hide the loader once preloading succeeds or fails
-                if (loader) loader.style.display = 'none';
-            });
+            alert('Could not remove background. Please ensure model assets are downloaded or check console.');
         }
     } catch (err) {
         console.error('Background removal error:', err);
