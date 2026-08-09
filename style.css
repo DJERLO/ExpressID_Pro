@@ -1,12 +1,7 @@
 :root {
     /* Brand & Accent Palette */
-    --primary: #4f46e5;         /* Deep Modern Indigo */
     --primary-hover: #4338ca;
-    --cyan: #06b6d4;            /* Vibrant Electric Blue */
     --accent-glow: #38bdf8;       /* Soft Light Blue Glow */
-    --lime: #10b981;            /* Mint Accent (Success/Badge) */
-    --rose: #ff4d6d;             /* Rose Accent (Error/Badge) */
-    --magenta: #ff2bd6;         /* Magenta Accent (Error/Badge) */
     
     /* Dark Surface Palette */
     --bg: #090d16;              /* Deep Slate Background */
@@ -19,12 +14,52 @@
     /* Shadows & Elevation */
     --shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
-    /* Buttons */
-    --danger: #8B0000;
+    /* Colors Utilities */
     --red: #dc2626;
     --orange: #FF4500;
     --green: #16a34a;
-    --blue: #3b82f6;
+    --blue:    #0d6efd;
+    --indigo:  #6610f2;
+    --purple:  #6f42c1;
+    --pink:    #d63384;
+    --orange:  #fd7e14;
+    --yellow:  #ffc107;
+    --green:   #198754;
+    --teal:    #20c997;
+    --cyan:    #0dcaf0;
+    --lime: #10b981;
+    --rose: #ff4d6d;
+    --magenta: #ff2bd6;
+
+    /* Grayscale Utilities */
+    --white:    #fff;
+    --gray-100: #f8f9fa;
+    --gray-200: #e9ecef;
+    --gray-300: #dee2e6;
+    --gray-400: #ced4da;
+    --gray-500: #adb5bd;
+    --gray-600: #6c757d;
+    --gray-700: #495057;
+    --gray-800: #343a40;
+    --gray-900: #212529;
+    --black:    #000;
+
+    /* Gradient Utilities */
+    --gradient: linear-gradient(135deg, var(--blue), var(--accent-glow));
+    --gradient1: linear-gradient(135deg, var(--primary), var(--cyan));
+    --gradient2: linear-gradient(135deg,var(--rose), var(--magenta));
+    --gradient3: linear-gradient(135deg,var(--danger),var(--orange));
+
+    /* Color Utilities */
+    --primary: var(--blue);
+    --secondary: var(--gray-600);
+    --success: var(--green);
+    --info: var(--cyan);
+    --warning: var(--yellow);
+    --remove: var(--gradient2);
+    --danger: var(--red);
+    --light: var(--gray-100);
+    --dark: var(--gray-900);
 }
 
 * {
@@ -73,17 +108,108 @@ button {
     overflow: hidden
 }
 
-button:has(.danger):not(.active) {
-    border: 1px solid var(--border);
-    background: linear-gradient(135deg,var(--blue),var(--cyan));
-    color: var(--text);
-    border-radius: 14px;
-    padding: 11px 13px;
-    cursor: pointer;
-    transition: .22s cubic-bezier(.2,.8,.2,1);
-    min-height: 44px;
-    position: relative;
-    overflow: hidden
+/* Center icons and text nicely in all buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Default icon sizing inside standard action buttons */
+.btn:has(span) .material-symbols-outlined {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Bootstrap button styling */
+.btn-primary{
+    background-color: var(--blue);
+}
+
+.btn-secondary{
+    background-color: var(--secondary);
+}
+
+.btn-success{
+    background-color: var(--success);
+}
+
+.btn-warning{
+    background-color: var(--warning);
+}
+
+.btn-remove{
+    background-color: var(--remove);
+}
+
+.btn-danger{
+    background-color: var(--danger);
+}
+
+.btn-info{
+    background-color: var(--info);
+}
+
+.btn-light{
+    background-color: var(--light);
+}
+
+.btn-dark{
+    background-color: var(--dark);
+}
+
+.btn-outline-primary{
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.btn-outline-secondary{
+    border-color: var(--secondary);
+    color: var(--secondary);
+}
+
+.btn-outline-success{
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.btn-outline-warning{
+    border-color: var(--warning);
+    color: var(--warning);
+}
+
+.btn-outline-remove{
+    border-color: var(--remove);
+    color: var(--remove);
+}
+
+.btn-outline-danger{
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.btn-outline-info{
+    border-color: var(--info);
+    color: var(--info);
+}
+
+.btn-outline-light{
+    border-color: var(--light);
+    color: var(--light);
+}
+
+.btn-outline-dark{
+    border-color: var(--dark);
+    color: var(--dark);
+}
+
+.btn-gradient-1{
+    background: var(--gradient1);
+}
+
+.btn-gradient-2{
+    background: var(--gradient2);
 }
 
 button:before {
@@ -107,7 +233,7 @@ button:hover:before {
 
 /* Refined Modern Buttons */
 button.active, .primary {
-    background: linear-gradient(135deg, var(--primary), var(--cyan));
+    background: var(--gradient1);
     color: #ffffff;
     border-color: rgba(255, 255, 255, 0.2);
     box-shadow: 0 8px 24px rgba(79, 70, 229, 0.35);
@@ -157,7 +283,7 @@ button:disabled, button:hover:disabled {
     width: 48px;
     height: 48px;
     border-radius: 14px;
-    background: linear-gradient(135deg, var(--primary), var(--cyan));
+    background: var(--gradient1);
     color: #ffffff;
     display: grid;
     place-items: center;
@@ -332,7 +458,7 @@ input:focus,select:focus {
 
 .remove {
     color: #fff;
-    background: linear-gradient(135deg,var(--rose), var(--magenta));
+    background: var(--remove);
     border: 0
 }
 
@@ -348,7 +474,7 @@ input:focus,select:focus {
 }
 
 input[type=range] {
-    accent-color: var(--pink);
+    accent-color: linear-gradient(135deg,var(--blue), var(--accent-glow)); ;
     padding: 0
 }
 
@@ -394,15 +520,9 @@ input[type=range] {
     margin-top: 12px
 }
 
-.toolbar button.primary {
+.toolbar button.full {
     margin: 0;
     grid-column: span 2;
-}
-
-.toolbar button.danger {
-    margin: 0;
-    grid-column: span 2;
-    background: linear-gradient(135deg,var(--red),var(--orange));
 }
 
 .workspace {
@@ -416,21 +536,129 @@ input[type=range] {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
     gap: 16px;
-    margin-bottom: 18px;
-    background: rgba(8,12,31,.5);
+    margin-bottom: 10px;
+    padding: 14px 22px;
+    background: rgba(13, 18, 38, 0.65);
     border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 18px 20px;
-    backdrop-filter: blur(18px);
-    box-shadow: var(--shadow)
+    border-radius: 20px;
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    transition: border-color 0.3s ease;
 }
 
+.topbar:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* Title & Counter Metadata */
+.topbar h2 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.topbar h2::before {
+    content: "";
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 12px var(--cyan);
+}
+
+.topbar p {
+    margin: 3px 0 0 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+}
+
+.topbar p span {
+    color: var(--cyan);
+    font-weight: 600;
+}
+
+/* Page Navigation Pill Bar */
+.page-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 4px 8px;
+    backdrop-filter: blur(8px);
+}
+
+.page-controls button {
+    min-height: 36px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    background: transparent;
+    box-shadow: none;
+}
+
+.page-controls button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: none;
+    box-shadow: none;
+}
+
+.page-controls button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+#pageIndicator {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    padding: 4px 12px;
+    background: rgba(0, 229, 255, 0.1);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    border-radius: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* Action Trigger Buttons */
 .actions {
     display: flex;
-    gap: 9px;
+    align-items: center;
+    gap: 10px;
     flex-wrap: wrap;
-    justify-content: flex-end
+}
+
+.actions .btn {
+    min-height: 40px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 12px;
+    letter-spacing: 0.01em;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+/* Icon-only Print Button styling refinement */
+#printBtn {
+    min-width: 40px;
+    padding: 8px;
 }
 
 /* Stage Zoom Controls Overlay */
@@ -451,11 +679,19 @@ input[type=range] {
 }
 
 .stage-zoom-controls button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-height: 32px;
     padding: 4px 10px;
-    font-size: 14px;
     font-weight: bold;
     border-radius: 10px;
+}
+
+.stage-zoom-controls .material-symbols-outlined {
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1;
 }
 
 #stageZoomLabel {
@@ -469,14 +705,14 @@ input[type=range] {
 .preview-stage {
     width: 100%;
     max-height: 100vh;
-    height: 70vh;
+    height: 63vh;
     display: grid;
     place-items: center;
     overflow: hidden;
     cursor: grab; /* Shows open hand cursor */
     background: linear-gradient(135deg, rgba(255,255,255,.08), rgba(0,229,255,.06));
     border: 1px solid var(--border);
-    border-radius: 28px;
+    border-radius: 20px;
     padding: 34px;
     position: relative;
     box-shadow: inset 0 1px 0 rgba(255,255,255,.1);
@@ -503,13 +739,11 @@ canvas#previewCanvas {
     justify-content: center;
     align-items: center;
     transform-origin: center center;
-    /* Removed transition scaling lag so dragging stays immediate and smooth */
     transition: box-shadow 0.25s ease; 
     max-width: 100%;
     height: 55vh;
     cursor: grab;   
     background: #fff;
-    border-radius: 8px;
     box-shadow: 0 30px 90px rgba(0,0,0,.42), 0 0 0 1px rgba(255,255,255,.16), 0 0 55px rgba(0,229,255,.16);
 }
 
@@ -519,29 +753,6 @@ canvas#previewCanvas:active {
 
 .preview-stage:hover canvas {
     transform: perspective(1400px) rotateX(1deg) rotateY(-1deg)
-}
-
-.powered {
-    margin-top: 16px;
-    text-align: center;
-    color: #c8d2ff;
-    font-weight: 750;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    background: rgba(8,12,31,.5);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 14px;
-    backdrop-filter: blur(18px);
-    box-shadow: var(--shadow)
-}
-
-.powered strong {
-    background: linear-gradient(90deg,var(--cyan),var(--pink),var(--lime));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    text-shadow: 0 0 22px rgba(0,229,255,.25)
 }
 
 @keyframes pulseGlow {
@@ -588,17 +799,34 @@ canvas#previewCanvas:active {
     }
 
     .topbar {
-        align-items: flex-start;
-        flex-direction: column
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+        padding: 16px;
+    }
+
+    .page-controls {
+        justify-content: space-between;
+        width: 100%;
     }
 
     .actions {
-        justify-content: flex-start
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .actions .btn {
+        flex: 1;
+    }
+    
+    #printBtn {
+        flex: 0 0 auto;
     }
 
     .preview-stage {
         padding: 18px;
-        min-height: 60vh
+        min-height: 60vh;
+        user-select: none;
     }
 }
 
@@ -791,8 +1019,8 @@ canvas#previewCanvas:active {
 }
 
 .powered {
-    margin-top: 24px;
-    padding: 16px 20px;
+    margin-top: 10px;
+    padding: 10px 20px;
     text-align: center;
     color: var(--muted);
     font-size: 13px;
@@ -913,4 +1141,26 @@ canvas#previewCanvas:active {
 
 .skip-link:focus {
     top: 0;
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;  /* Preferred icon size */
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  /* Ensures smooth rendering and ligature resolution */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga';
+}
+
+.material-symbols-outlined.icon-photo {
+  font-size: 48px;
 }

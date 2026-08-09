@@ -13,6 +13,7 @@
   <!-- App Shell -->
   <div class="app-shell">
     <aside class="sidebar" role="region" aria-label="Sidebar Controls">
+      
       <div class="brand">
         <div class="logo">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -30,6 +31,7 @@
       <section class="card">
         <h2>Upload Photo</h2>
         <label id="dropZone" class="drop-zone" tabindex="0">
+          <span class="material-symbols-outlined icon-photo">add_photo_alternate</span>
           <input id="fileInput" type="file" accept="image/jpeg,image/png" />
           <img id="thumb" alt="Uploaded thumbnail" hidden />
           <span id="dropText"><strong>Drag & drop</strong><br>or click to browse JPG/PNG</span>
@@ -43,8 +45,8 @@
             <input id="zoom" type="range" min="20" max="100" value="100" aria-label="Zoom level percentage">
           </label>
           <div class="toolbar">
-            <button id="removeBgBtn" class="primary full">✨ Remove Background</button> 
-            <button id="resetImageBtn" class="danger full">🔄 Reset to Original</button>
+            <button id="removeBgBtn" class="btn btn-gradient-1 full"><span class="material-symbols-outlined">auto_awesome</span>Remove Background</button> 
+            <button id="resetImageBtn" class="btn btn-gradient-2 full"><span class="material-symbols-outlined">reset_image</span>Reset to Original</button>
             <button id="rotate">Rotate</button>
             <button id="flip">Flip Horizontal</button>
           </div>
@@ -76,17 +78,21 @@
           <label>Quantity<input id="quantity" type="number" min="1" max="200" value="4" aria-label="Photo Quantity"></label>
         </div>
         <button id="addSize" class="primary full" type="button">Add size</button>
-        <div id="sizeList" class="size-list"></div>
+        <div id="sizeList" class="size-list">
+          <!-- Size list will be generated here -->
+        </div>
       </section>
       <section class="card">
         <h2>ID Card Print</h2>
         <div class="idcard-grid">
           <label class="mini-upload" id="frontDrop">
+            <span class="material-symbols-outlined front">id_card</span>
             <input id="frontInput" type="file" accept="image/jpeg,image/png" />
             <img id="frontThumb" alt="Front ID photo" hidden />
             <span id="frontText"><strong>Front</strong><br>Upload & crop</span>
           </label>
           <label class="mini-upload" id="backDrop">
+            <span class="material-symbols-outlined id_card back">id_card</span>
             <input id="backInput" type="file" accept="image/jpeg,image/png" />
             <img id="backThumb" alt="Back ID photo" hidden />
             <span id="backText"><strong>Back</strong><br>Upload & crop</span>
@@ -167,23 +173,32 @@
           <p><span id="pageCount">1 page</span> · <span id="totalPhotos">0 photos</span></p>
         </div>
         <div class="page-controls">
-          <button id="prevPage" class="secondary" disabled>◄ Prev</button>
+          <button id="prevPage" class="btn secondary" disabled><span class="material-symbols-outlined">chevron_left</span>Prev</button>
           <span id="pageIndicator" style="font-weight: bold;" aria-live="polite">Page 1 of 1</span>
-          <button id="nextPage" class="secondary" disabled>Next ►</button>
+          <button id="nextPage" class="btn secondary" disabled>Next<span class="material-symbols-outlined">chevron_right</span></button>
         </div>
         <div class="actions">
-          <button id="downloadPdf" class="primary">Download PDF</button>
-          <button id="downloadPng" class="secondary">Download PNG</button>
-          <button id="printBtn"><span class="material-symbols-outlined">print</span></button>
+          <button id="downloadPdf" class="btn btn-primary"><span class="material-symbols-outlined">picture_as_pdf</span>Download PDF</button>
+          <button id="downloadPng" class="btn btn-secondary"><span class="material-symbols-outlined">image</span>Download PNG</button>
+          <button id="printBtn" class="btn btn-info"><span class="material-symbols-outlined">print</span></button>
         </div>
       </header>
       <div class="preview-stage" id="previewStage">
         <div class="canvas-container" id="canvasContainer">
           <div class="stage-zoom-controls">
-            <button id="stageZoomOut" title="Zoom Out" aria-label="Zoom Out" type="button">−</button>
+            <button id="stageZoomOut" title="Zoom Out" aria-label="Zoom Out" type="button">
+              <span class="material-symbols-outlined">remove</span>
+            </button>
+
             <span id="stageZoomLabel" aria-live="polite">100%</span>
-            <button id="stageZoomIn" title="Zoom In" aria-label="Zoom In" type="button">+</button>
-            <button id="stageZoomReset" title="Reset Zoom & Fit" aria-label="Reset zoom and fit to canvas" type="button">Fit</button>
+
+            <button id="stageZoomIn" title="Zoom In" aria-label="Zoom In" type="button">
+              <span class="material-symbols-outlined">add</span>
+            </button>
+
+            <button id="stageZoomReset" title="Reset Zoom & Fit" aria-label="Reset zoom and fit to canvas" type="button">
+              <span class="material-symbols-outlined">fit_screen</span>
+            </button>
           </div>
           <canvas id="previewCanvas" role="img" aria-label="Print-ready photo layout preview matrix"></canvas>
         </div>
@@ -205,9 +220,10 @@
       <h3 id="idCropTitle">Crop ID side</h3>
       <div class="crop-box"><img id="idCropImage" alt="ID side crop"></div>
       <div class="idcard-actions">
-        <button id="cancelIdCrop">Cancel</button>
-        <button id="rotateIdCrop" type="button">🔄 Rotate 90°</button>
-        <button id="saveIdCrop" class="primary">Save Crop</button>
+        <button class="btn-danger" id="cancelIdCrop">Cancel</button>
+        <button id="rotateIdCropLeft" class="btn" type="button"><span class="material-symbols-outlined">rotate_90_degrees_cw</span>Rotate 90°</button>
+        <button id="rotateIdCropRight" class="btn" type="button"><span class="material-symbols-outlined">rotate_90_degrees_ccw</span>Rotate 90°</button>
+        <button id="saveIdCrop" class="btn primary"><span class="material-symbols-outlined">save</span>Save Crop</button>
       </div>
     </div>
   </div>

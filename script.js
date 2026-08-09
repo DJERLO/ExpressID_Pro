@@ -641,7 +641,7 @@ function renderSizeList() {
     state.sizes.forEach( (s, i) => {
         let d = document.createElement('div');
         d.className = 'size-item';
-        d.innerHTML = `<div><b>${s.label}</b><br><small>${s.w} × ${s.h} ${s.unit} · ${s.qty} copies</small></div><button type="button" class="remove" aria-label="Remove ${s.label} size from list">×</button>`;
+        d.innerHTML = `<div><b>${s.label}</b><br><small>${s.w} × ${s.h} ${s.unit} · ${s.qty} copies</small></div><button type="button" class="btn remove" aria-label="Remove ${s.label} size from list"><span class="material-symbols-outlined">delete</span></button>`;
         d.querySelector('button').onclick = () => {
             state.sizes.splice(i, 1);
             renderSizeList();
@@ -655,6 +655,8 @@ function renderSizeList() {
 function setupUpload() {
     const dz = $('dropZone')
       , fi = $('fileInput');
+
+    const icon = $('icon-photo');
     ['dragenter', 'dragover'].forEach(e => dz.addEventListener(e, ev => {
         ev.preventDefault();
         dz.classList.add('drag')
@@ -781,6 +783,8 @@ function updateImageSource(newUrl) {
     img.src = newUrl;
 }
 async function loadFile(f) {
+    const icon = document.querySelector('.icon-photo');
+
     if (!f || !/image\/(jpeg|png)/.test(f.type))
         return alert('Please upload a JPG or PNG.');
     
@@ -821,6 +825,7 @@ async function loadFile(f) {
             ready: () => draw()
         });
         state.image = originalUrl;
+        icon.style.display = 'none';
         draw()
     }
 }
@@ -1143,7 +1148,7 @@ async function downloadPNG() {
         state.currentPage = 0;
         draw();
         let a = document.createElement('a');
-        a.download = 'photo-layout-page-1.png';
+        a.download = btoa(canvas.toDataURL('image/png'));
         a.href = canvas.toDataURL('image/png');
         a.click();
         return;
@@ -1161,7 +1166,7 @@ async function downloadPNG() {
         const dataUrl = canvas.toDataURL('image/png');
         const base64Data = dataUrl.replace(/^data:image\/png;base64,/, "");
 
-        folder.file(`photo-layout-page-${idx + 1}.png`, base64Data, { base64: true });
+        folder.file(`photo-${idx + 1}.png`, base64Data, { base64: true });
     });
 
     // Restore active preview page state
@@ -1171,7 +1176,7 @@ async function downloadPNG() {
     // Generate zip archive and trigger download
     const zipBlob = await zip.generateAsync({ type: "blob" });
     const a = document.createElement('a');
-    a.download = 'photo-layouts.zip';
+    a.download = btoa(zipBlob);
     a.href = URL.createObjectURL(zipBlob);
     a.click();
 
@@ -1330,15 +1335,30 @@ function setupIdCardPrint() {
     $('addIdCards').onclick = addIdCardLayout;
 
     // Handle ID Card rotation
-    const rotateIdBtn = $('rotateIdCrop');
-    if (rotateIdBtn) {
-        rotateIdBtn.onclick = () => {
+    const rotateIdBtnleft = $('rotateIdCropLeft');
+    const rotateIdBtnRight = $('rotateIdCropRight');
+    
+    //Rotate Right(Clockwise)
+    if (rotateIdBtnRight) {
+        rotateIdBtnRight.onclick = () => {
             if (state.idCards.cropper) {
                 state.idCards.rotation = (state.idCards.rotation + 90) % 360;
                 state.idCards.cropper.rotate(90);
             }
         };
     }
+
+    //Rotate Left(AntiClockwise)
+    if (rotateIdBtnleft) {
+        rotateIdBtnleft.onclick = () => {
+            if (state.idCards.cropper) {
+                state.idCards.rotation = (state.idCards.rotation - 90 + 360) % 360;
+                state.idCards.cropper.rotate(-90);
+            }
+        };
+    }
+
+
 
     // Handle ID Preset selection change
     const presetSelect = $('idPresetSelect');
@@ -1442,9 +1462,11 @@ function saveIdCrop() {
     if (!state.idCards.cropper)
         return;
     const side = state.idCards.active;
-
+    const icon = document.querySelector((side === 'front' ? '.front' : '.back'));
     const w = +$('idCardWidth').value || 3.37;
     const h = +$('idCardHeight').value || 2.13;
+
+    icon.style.display = 'none';
 
     const c = state.idCards.cropper.getCroppedCanvas({
         width: Math.round(w * DPI),
@@ -1455,6 +1477,7 @@ function saveIdCrop() {
     $(side + 'Thumb').src = c.toDataURL('image/png');
     $(side + 'Thumb').hidden = false;
     $(side + 'Text').hidden = true;
+    
     closeIdCrop();
     draw();
 }
