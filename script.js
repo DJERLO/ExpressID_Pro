@@ -98,7 +98,7 @@ function debounce(func, wait) {
 /**
  * Removes the background from an image using the Imgly Background Removal API.
  * @param {string} imageSource - The source URL of the image to process.
- * @returns {Promise<string|null>} - A promise that resolves to a blob URL of the processed image or null if an error occurs.
+ * @returns {Promise<string>} - A promise that resolves to the processed image source URL.
  */
 async function removePhotoBackground(imageSource) {
     const loader = document.getElementById('bg-loader');
@@ -111,7 +111,7 @@ async function removePhotoBackground(imageSource) {
         return URL.createObjectURL(blob);
     } catch (error) {
         console.error('Background removal failed:', error);
-        return null;
+        return imageSource;
     } finally {
         if (loader) {
             loader.style.display = 'none';
@@ -373,6 +373,17 @@ function initNetworkListener() {
             modal.removeAttribute('inert');
             icon.textContent = '⚡';
             msg.textContent = 'You are back online!';
+            preload(config)
+            .then(() => {
+                console.log("Asset preloading succeeded");
+            })
+            .catch(err => {
+                console.log('Background preload skipped or failed:', err);
+            })
+            .finally(() => {
+                // 3. Hide the loader once preloading succeeds or fails
+                if (loader) loader.style.display = 'none';
+            });
 
             // Auto-hide the "Back Online" message after 3.5 seconds
             setTimeout(() => {
@@ -669,8 +680,19 @@ async function handleRemoveBackground() {
         if (processedUrl) {
             updateImageSource(processedUrl);
         } else {
-            processedUrl = null;
+            // If the background removal fails, show an alert
             alert('Could not remove background. Please try another image.');
+            preload(config)
+            .then(() => {
+                console.log("Asset preloading succeeded");
+            })
+            .catch(err => {
+                console.log('Background preload skipped or failed:', err);
+            })
+            .finally(() => {
+                // 3. Hide the loader once preloading succeeds or fails
+                if (loader) loader.style.display = 'none';
+            });
         }
     } catch (err) {
         console.error('Background removal error:', err);
