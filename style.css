@@ -5,6 +5,8 @@
     --cyan: #06b6d4;            /* Vibrant Electric Blue */
     --accent-glow: #38bdf8;       /* Soft Light Blue Glow */
     --lime: #10b981;            /* Mint Accent (Success/Badge) */
+    --rose: #ff4d6d;             /* Rose Accent (Error/Badge) */
+    --magenta: #ff2bd6;         /* Magenta Accent (Error/Badge) */
     
     /* Dark Surface Palette */
     --bg: #090d16;              /* Deep Slate Background */
@@ -16,6 +18,13 @@
     
     /* Shadows & Elevation */
     --shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+    /* Buttons */
+    --danger: #8B0000;
+    --red: #dc2626;
+    --orange: #FF4500;
+    --green: #16a34a;
+    --blue: #3b82f6;
 }
 
 * {
@@ -54,6 +63,19 @@ button,input,select {
 button {
     border: 1px solid var(--border);
     background: linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.05));
+    color: var(--text);
+    border-radius: 14px;
+    padding: 11px 13px;
+    cursor: pointer;
+    transition: .22s cubic-bezier(.2,.8,.2,1);
+    min-height: 44px;
+    position: relative;
+    overflow: hidden
+}
+
+button:has(.danger):not(.active) {
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg,var(--blue),var(--cyan));
     color: var(--text);
     border-radius: 14px;
     padding: 11px 13px;
@@ -310,7 +332,7 @@ input:focus,select:focus {
 
 .remove {
     color: #fff;
-    background: linear-gradient(135deg,#ff4d6d,#ff2bd6);
+    background: linear-gradient(135deg,var(--rose), var(--magenta));
     border: 0
 }
 
@@ -372,8 +394,15 @@ input[type=range] {
     margin-top: 12px
 }
 
-.toolbar .primary {
+.toolbar button.primary {
+    margin: 0;
     grid-column: span 2;
+}
+
+.toolbar button.danger {
+    margin: 0;
+    grid-column: span 2;
+    background: linear-gradient(135deg,var(--red),var(--orange));
 }
 
 .workspace {

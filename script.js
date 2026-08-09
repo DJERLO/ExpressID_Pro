@@ -431,6 +431,7 @@ function init() {
 
     $('currentYear').textContent = new Date().getFullYear();
     $('removeBgBtn').onclick = handleRemoveBackground;
+    $('resetImageBtn').onclick = handleResetImage;
 
     document.getElementById('prevPage').onclick = () => {
         if (state.currentPage > 0) {
@@ -678,6 +679,11 @@ async function handleRemoveBackground() {
         let processedUrl = await removePhotoBackground(currentSrc);
 
         if (processedUrl) {
+            // Free memory if there was a previous AI background result[cite: 2]
+            if (state.removedBackground) {
+                URL.revokeObjectURL(state.removedBackground);
+            }
+            state.removedBackground = processedUrl; // Cache new AI image[cite: 2]
             updateImageSource(processedUrl);
         } else {
             // If the background removal fails, show an alert
@@ -704,7 +710,40 @@ async function handleRemoveBackground() {
     }
 }
 /**
+ * Restores the image to its original state after background removal
+ * @returns {void}
+ */
+function handleResetImage() {
+    if (!state.originalImage) {
+        return alert('No original image to restore.');
+    }
+
+    // 1. Clear background removal cache from RAM[cite: 2]
+    if (state.removedBackground) {
+        URL.revokeObjectURL(state.removedBackground);
+        state.removedBackground = null;
+    }
+
+    // 2. Reset adjustment controls to default values
+    $('brightness').value = 100;
+    $('brightnessValue').textContent = '100%';
+    $('contrast').value = 100;
+    $('contrastValue').textContent = '100%';
+    $('zoom').value = 100;
+    $('zoomValue').textContent = '100%';
+
+    // 3. Reset state rotation & flip[cite: 2]
+    state.rotation = 0;
+    state.flip = 1;
+
+    // 4. Reload the original image[cite: 2]
+    updateImageSource(state.originalImage);
+}
+
+/**
  * Replaces the current state image and refreshes the Cropper instance if initialized
+ * @param {string} newUrl
+ * @returns {void}
  */
 function updateImageSource(newUrl) {
     let cropRaf = null;
@@ -742,7 +781,17 @@ async function loadFile(f) {
     if (!f || !/image\/(jpeg|png)/.test(f.type))
         return alert('Please upload a JPG or PNG.');
     
+    // Revoke any previously generated object URL to free up browser cache/memory
+    if (state.removedBackground) {
+        URL.revokeObjectURL(state.removedBackground);
+        state.removedBackground = null;
+    }
+    if (state.originalImage) {
+        URL.revokeObjectURL(state.originalImage);
+    }
+
     let originalUrl = URL.createObjectURL(f);
+    state.originalImage = originalUrl; // Cache original uploaded image
 
     $('thumb').src = originalUrl;
     $('thumb').hidden = false;
