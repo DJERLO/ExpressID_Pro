@@ -162,6 +162,7 @@ const idCardPresets = {
     "Custom": [0, 0]
 };
 const papers = {
+    // Format: "name": [width, height] <- inches
     "3R (3.5 x 5)": [3.5, 5],
     "4R (4 x 6)": [4, 6],
     "5R (5 x 7)": [5, 7],
@@ -490,6 +491,10 @@ function init() {
         b.type = 'button';
         b.onclick = () => {
             state.paper = k;
+            // Automatically set width and height inputs based on selected preset dimensions
+            const [w, h] = papers[k];
+            if ($('customPaperWidth')) $('customPaperWidth').value = w;
+            if ($('customPaperHeight')) $('customPaperHeight').value = h;
             renderButtons();
             draw()
         };
@@ -679,11 +684,11 @@ async function handleRemoveBackground() {
         let processedUrl = await removePhotoBackground(currentSrc);
 
         if (processedUrl) {
-            // Free memory if there was a previous AI background result[cite: 2]
+            // Free memory if there was a previous AI background result
             if (state.removedBackground) {
                 URL.revokeObjectURL(state.removedBackground);
             }
-            state.removedBackground = processedUrl; // Cache new AI image[cite: 2]
+            state.removedBackground = processedUrl;
             updateImageSource(processedUrl);
         } else {
             // If the background removal fails, show an alert
@@ -718,7 +723,7 @@ function handleResetImage() {
         return alert('No original image to restore.');
     }
 
-    // 1. Clear background removal cache from RAM[cite: 2]
+    // 1. Clear background removal cache from RAM
     if (state.removedBackground) {
         URL.revokeObjectURL(state.removedBackground);
         state.removedBackground = null;
@@ -732,11 +737,11 @@ function handleResetImage() {
     $('zoom').value = 100;
     $('zoomValue').textContent = '100%';
 
-    // 3. Reset state rotation & flip[cite: 2]
+    // 3. Reset state rotation & flip
     state.rotation = 0;
     state.flip = 1;
 
-    // 4. Reload the original image[cite: 2]
+    // 4. Reload the original image
     updateImageSource(state.originalImage);
 }
 
@@ -1204,11 +1209,27 @@ function downloadPDF() {
     state.currentPage = originalPage;
     draw();
 
-    pdf.save('photo-layout.pdf');
+    pdf.save(pdf.output('bloburl'));
 }
 function printCanvas() {
     let [wi, hi] = papers[state.paper];
-    if (document.getElementById('landscape')?.checked) [wi, hi] = [hi, wi];
+    const isLandscape = document.getElementById('landscape')?.checked;
+    
+    if (isLandscape) [wi, hi] = [hi, wi];
+    // Map selected paper preset to official CSS @page keywords for Chrome/Edge print auto-staging
+    let pageSizeCss = '';
+    const paperName = state.paper.toLowerCase();
+
+    if (paperName.includes('a4')) {
+        pageSizeCss = `A4 ${isLandscape ? 'landscape' : 'portrait'}`;
+    } else if (paperName.includes('letter')) {
+        pageSizeCss = `letter ${isLandscape ? 'landscape' : 'portrait'}`;
+    } else if (paperName.includes('legal')) {
+        pageSizeCss = `legal ${isLandscape ? 'landscape' : 'portrait'}`;
+    } else {
+        // For photo papers (3R, 4R, 5R) or custom sizes, pass explicit inch dimensions
+        pageSizeCss = `${wi}in ${hi}in`;
+    }
 
     let canvas = document.getElementById('previewCanvas');
     let margin = +(document.getElementById('margin')?.value || 0.25) * DPI;
@@ -1238,17 +1259,20 @@ function printCanvas() {
             <title>Print Layout</title>
             <style>
                 @page {
-                    size: ${wi}in ${hi}in;
+                    size: ${pageSizeCss}; /* Autostages paper size in printer window */
                     margin: 0;
                 }
-                body {
+                html, body {
                     margin: 0;
                     padding: 0;
-                    background: #fff;
+                    width: 100%;
+                    height: 100%;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
                 }
                 .print-page {
-                    width: 100vw;
-                    height: 100vh;
+                    width: ${wi}in;
+                    height: ${hi}in;
                     page-break-after: always;
                     break-after: page;
                     display: flex;
