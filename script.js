@@ -1,3 +1,4 @@
+import '@fontsource/material-symbols-outlined';
 import { removeBackground, preload } from '@imgly/background-removal';
 import 'cropperjs/dist/cropper.css';
 import  Cropper from 'cropperjs';
