@@ -934,7 +934,7 @@ async function handleRemoveBackground() {
     try {
         // UI Loading state
         btn.disabled = true;
-        btn.textContent = '⏳ Removing Background...';
+        btn.innerHTML = `<span class="material-symbols-outlined spin">hourglass_empty</span> Removing Background...`;
 
         // Call the imgly background removal function
         let processedUrl = await removePhotoBackground(currentSrc);
@@ -956,7 +956,7 @@ async function handleRemoveBackground() {
     } finally {
         // Restore button state
         btn.disabled = false;
-        btn.textContent = originalText;
+        btn.innerHTML = `<span class="material-symbols-outlined">auto_awesome</span>Remove Background`;
     }
 }
 /**
