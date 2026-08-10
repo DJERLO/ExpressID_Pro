@@ -212,6 +212,31 @@ button {
     background: var(--gradient2);
 }
 
+/* Delete button overlaid on top right of custom package cards */
+.btn-del-custom {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 22px;
+  height: 22px;
+  min-height: 22px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  background: var(--red) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  z-index: 5;
+  cursor: pointer;
+}
+
+.btn-del-custom:hover {
+  transform: scale(1.15) !important;
+  background: #ef4444 !important;
+}
+
 button:before {
     content: "";
     position: absolute;
@@ -1163,4 +1188,84 @@ canvas#previewCanvas:active {
 
 .material-symbols-outlined.icon-photo {
   font-size: 48px;
+}
+
+/* Custom Package Accordion Row Styling */
+.pkg-row-accordion {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.pkg-row-accordion:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.pkg-row-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+    user-select: none;
+    gap: 12px;
+}
+
+.pkg-row-header:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.pkg-row-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+
+.pkg-row-chevron {
+    transition: transform 0.25s ease;
+    font-size: 20px;
+    color: var(--muted);
+}
+
+.pkg-row-accordion.open .pkg-row-chevron {
+    transform: rotate(180deg);
+    color: var(--cyan);
+}
+
+.pkg-row-title {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pkg-row-summary {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.pkg-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pkg-row-body {
+    display: none;
+    padding: 14px;
+    border-top: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.pkg-row-accordion.open .pkg-row-body {
+    display: grid;
 }

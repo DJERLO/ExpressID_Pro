@@ -5,7 +5,12 @@ export default defineConfig({
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
-      // includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: [
+        'favicon.ico',
+        'favicon.svg',
+        'favicon-96x96.png',
+        'apple-touch-icon.png'
+      ],
       manifest: {
         name: 'ExpressID Pro',
         short_name: 'ExpressID',
@@ -13,24 +18,55 @@ export default defineConfig({
         theme_color: '#090d16',
         background_color: '#090d16',
         display: 'standalone',
-        // icons: [
-        //   {
-        //     src: '/pwa-192x192.png',
-        //     sizes: '192x192',
-        //     type: 'image/png'
-        //   },
-        //   {
-        //     src: '/pwa-512x512.png',
-        //     sizes: '512x512',
-        //     type: 'image/png'
-        //   }
-        // ]
+        icons: [
+          {
+            src: '/web-app-manifest-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/web-app-manifest-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/web-app-manifest-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
+          }
+        ],
+        screenshots: [
+          {
+            src: '/screenshot1.png',
+            sizes: '1280x720',
+            type: 'image/png',
+            form_factor: 'wide',
+            label: 'ExpressID Pro Desktop Canvas & Photo Layout Engine'
+          },
+          {
+            src: '/screenshot2.png',
+            sizes: '428x928',
+            type: 'image/png',
+            form_factor: 'narrow',
+            label: 'ExpressID Pro Mobile View'
+          },
+          {
+            src: '/screenshot3.png',
+            sizes: '428x928',
+            type: 'image/png',
+            form_factor: 'narrow',
+            label: 'ExpressID Pro Mobile View'
+          }
+        ]
       },
       workbox: {
         // Include heavy files like WASM/ONNX if you want them available offline, 
         // though keep an eye on caching limits.
         globPatterns: [
-          '**/*.{js,css,html,ico,png,svg,wasm,onnx,json,bin,data}',
+          '**/*.{js,css,html,ico,png,svg,wasm,onnx,json,bin,data,woff,woff2}',
           'dist/**/*'
         ],
         maximumFileSizeToCacheInBytes: 50 * 1024 * 1024,

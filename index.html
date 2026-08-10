@@ -58,7 +58,12 @@
           </label>
       </section>
       <section class="card">
-        <h2>Rush Packages</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h2 style="margin: 0;">Rush Packages</h2>
+          <button id="openAddPackageBtn" class="btn btn-outline-primary" type="button" style="min-height: 32px; padding: 4px 10px; font-size: 11px;">
+            <span class="material-symbols-outlined" style="font-size: 14px;">add</span> Add Custom
+          </button>
+        </div>
         <div id="packageGrid" class="button-grid">
           <!-- Package buttons will be dynamically rendered here -->
         </div>
@@ -245,6 +250,39 @@
         </div>
     </div>
   </div>
+
+  <!-- Custom Rush ID Package Creator Modal -->
+  <!-- Custom Package Modal -->
+<div id="addPackageModal" class="crop-modal" inert role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="crop-panel" style="max-width: 520px;">
+    <h3 id="modalTitle" style="margin-top:0;">Create Custom Package</h3>
+    
+    <label style="display:block; margin-bottom: 12px;">Package Name
+      <input type="text" id="customPkgName" placeholder="e.g. Student Rush Pack" style="width:100%; margin-top:4px;" />
+    </label>
+
+    <!-- Quick Add Preset Toolbar -->
+    <label style="margin-bottom:6px; display:block;">Quick-Add Presets:</label>
+    <div id="modalPresetToolbar" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;">
+      <!-- Dynamic preset buttons land here -->
+    </div>
+
+    <!-- Container for dynamic row items -->
+    <div id="customPkgItemsContainer" style="max-height: 260px; overflow-y: auto; padding-right: 4px;">
+      <!-- Dynamic package item rows land here -->
+    </div>
+
+    <button type="button" id="addPkgItemRowBtn" class="btn btn-outline-secondary full" style="margin-top: 8px;">
+      <span class="material-symbols-outlined">add</span> Add Custom Size Row
+    </button>
+
+    <div class="idcard-actions" style="margin-top: 18px;">
+      <button type="button" id="cancelAddPackageBtn" class="btn btn-secondary">Cancel</button>
+      <button type="button" id="saveCustomPackageBtn" class="btn btn-primary">Save Package</button>
+    </div>
+  </div>
+</div>
+
   <script type="module" src="script.js"></script>
 </body>
 </html>
