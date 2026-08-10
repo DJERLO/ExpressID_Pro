@@ -124,6 +124,7 @@ async function removePhotoBackground(imageSource) {
 const DPI = 300;
 const RUSH_PACKAGE_KEY = 'CUSTOM_RUSH_PACKAGES';
 const packages = {
+    //Default packages load on first load.
     "Package A": [
         { w: 1, h: 1, unit: "inch", qty: 8, label: "1 x 1" },
         { w: 2, h: 2, unit: "inch", qty: 2, label: "2 x 2" }
@@ -153,26 +154,29 @@ const packages = {
  * @returns 
  */
 function getAllPackages() {
-    let custom = {};
     try {
         const stored = localStorage.getItem(RUSH_PACKAGE_KEY);
-        if (stored) {
-            custom = JSON.parse(stored);
+        if (stored !== null) {
+            return JSON.parse(stored);
         }
+
+        // Initial boot: seed localStorage with default packages
+        localStorage.setItem(RUSH_PACKAGE_KEY, JSON.stringify(packages));
+        return { ...packages };
     } catch (e) {
         console.error("Failed to read custom packages from localStorage:", e);
     }
-    return { ...packages, ...custom };
+    return { ...packages };
 }
 
 /**
  * Saves the custom packages to localStorage.
- * @param {*} customPackagesObj
+ * @param {*} packagesObj
  * @returns {void}
  */
-function saveCustomPackagesToStorage(customPackagesObj) {
+function savePackagesToStorage(packagesObj) {
     try {
-        localStorage.setItem(RUSH_PACKAGE_KEY, JSON.stringify(customPackagesObj));
+        localStorage.setItem(RUSH_PACKAGE_KEY, JSON.stringify(packagesObj));
     } catch (e) {
         console.error("Failed to save custom packages to localStorage:", e);
     }
@@ -180,16 +184,15 @@ function saveCustomPackagesToStorage(customPackagesObj) {
 
 
 
-function deleteCustomPackage(pkgKey) {
-    if (!confirm(`Delete custom package "${pkgKey}"?`)) return;
+function deletePackage(pkgKey) {
+    if (!confirm(`Delete package "${pkgKey}"?`)) return;
     try {
-        const stored = localStorage.getItem(RUSH_PACKAGE_KEY);
-        let custom = stored ? JSON.parse(stored) : {};
-        delete custom[pkgKey];
-        saveCustomPackagesToStorage(custom);
+        const allPkgs = getAllPackages();
+        delete allPkgs[pkgKey];
+        savePackagesToStorage(allPkgs);
         renderPackageGrid();
     } catch (e) {
-        console.error("Failed to delete custom package:", e);
+        console.error("Failed to delete package:", e);
     }
 }
 
@@ -204,9 +207,14 @@ function renderPackageGrid(activeKey = null) {
     
     grid.innerHTML = '';
     const allPkgs = getAllPackages();
+    const pkgKeys = Object.keys(allPkgs);
 
-    Object.keys(allPkgs).forEach(k => {
-        const isCustom = !packages.hasOwnProperty(k); // Check if custom or built-in
+    if (pkgKeys.length === 0) {
+        grid.innerHTML = `<small class="btn full" style="color: #888; font-style: italic; width: 100%; grid-column: span 2; text-align: center; display: block; padding: 8px 0;">No packages saved. Click "Add Custom" to create one.</small>`;
+        return;
+    }
+
+    pkgKeys.forEach(k => {
         const itemArray = allPkgs[k];
         const desc = itemArray.map(i => `${i.label} (${i.qty})`).join(' + ');
 
@@ -216,31 +224,27 @@ function renderPackageGrid(activeKey = null) {
 
         const b = document.createElement('button');
         b.type = 'button';
-        b.className = `${isCustom ? 'btn-outline-light' : ''}`;
         b.style.width = '100%';
         b.dataset.packageKey = k;
-        if (k === activeKey) b.classList.toggle('active', b.dataset.packageKey === activeKey);
+        if (k === activeKey) b.classList.add('active');
         b.setAttribute('aria-label', `Select ${k}: ${desc}`);
         b.innerHTML = `<b>${k}</b><br><small>${desc}</small>`;
         b.onclick = () => selectPackage(k);
 
         container.appendChild(b);
 
-        // Append a delete icon button if it's a custom package
-        if (isCustom) {
-            const delBtn = document.createElement('button');
-            delBtn.type = 'button';
-            delBtn.className = 'btn-del-custom';
-            delBtn.title = `Delete ${k}`;
-            delBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px; pointer-events:none;">close</span>`;
-            
-            // Prevent selecting package when clicking delete button
-            delBtn.onclick = (e) => {
-                e.stopPropagation();
-                deleteCustomPackage(k);
-            };
-            container.appendChild(delBtn);
-        }
+        // Delete button for all packages
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'btn-del-custom';
+        delBtn.title = `Delete ${k}`;
+        delBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px; pointer-events:none;">close</span>`;
+        
+        delBtn.onclick = (e) => {
+            e.stopPropagation();
+            deletePackage(k);
+        };
+        container.appendChild(delBtn);
 
         grid.appendChild(container);
     });
@@ -389,11 +393,10 @@ function setupCustomPackageModal() {
 
         if (!items.length) return alert('Please add at least one size item to the package.');
 
-        const stored = localStorage.getItem(RUSH_PACKAGE_KEY);
-        let custom = stored ? JSON.parse(stored) : {};
-        custom[name] = items;
+        const allPkgs = getAllPackages();
+        allPkgs[name] = items;
 
-        saveCustomPackagesToStorage(custom);
+        savePackagesToStorage(allPkgs);
         modal.classList.remove('open');
         modal.setAttribute('inert', '');
         
