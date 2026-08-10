@@ -30,7 +30,7 @@ export default defineConfig({
         // Include heavy files like WASM/ONNX if you want them available offline, 
         // though keep an eye on caching limits.
         globPatterns: [
-          '**/*.{js,css,html,ico,png,svg,wasm,onnx,json,bin,data}',
+          '**/*.{js,css,html,ico,png,svg,wasm,onnx,json,bin,data,woff,woff2}',
           'dist/**/*'
         ],
         maximumFileSizeToCacheInBytes: 50 * 1024 * 1024,
