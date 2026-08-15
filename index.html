@@ -212,9 +212,31 @@
           <button id="nextPage" class="btn secondary" disabled>Next<span class="material-symbols-outlined">chevron_right</span></button>
         </div>
         <div class="actions">
-          <button id="downloadPdf" class="btn btn-primary"><span class="material-symbols-outlined">picture_as_pdf</span>Download PDF</button>
-          <button id="downloadPng" class="btn btn-secondary"><span class="material-symbols-outlined">image</span>Download PNG</button>
-          <button id="printBtn" class="btn btn-info"><span class="material-symbols-outlined">print</span></button>
+          <!-- Primary Action: Print Button -->
+          <button type="button" id="printBtn" class="btn btn-primary" title="Print Layout">
+            <span class="material-symbols-outlined">print</span>
+            <span>Print</span>
+          </button>
+
+          <!-- Dropdown: Export As (PNG / PDF) -->
+          <div class="dropdown">
+            <button type="button" class="btn btn-outline-light dropdown-toggle" id="exportDropdownBtn">
+              <span class="material-symbols-outlined">download</span>
+              <span>Export As</span>
+              <span class="material-symbols-outlined arrow-icon">expand_more</span>
+            </button>
+
+            <div class="dropdown-menu" id="exportDropdownMenu">
+              <button type="button" class="dropdown-item" id="downloadPng">
+                <span class="material-symbols-outlined">image</span>
+                <span>PNG Image</span>
+              </button>
+              <button type="button" class="dropdown-item" id="downloadPdf">
+                <span class="material-symbols-outlined">picture_as_pdf</span>
+                <span>PDF Document</span>
+              </button>
+            </div>
+          </div>
         </div>
       </header>
       <div class="preview-stage" id="previewStage">
@@ -237,14 +259,6 @@
           <canvas id="previewCanvas" role="img" aria-label="Print-ready photo layout preview matrix"></canvas>
         </div>
       </div>
-      <footer class="powered">
-        <div class="footer-content">
-          <p>© <span id="currentYear"></span> <strong>DJERLO</strong> · All Rights Reserved</p>
-          <div class="footer-links">
-            <span class="badge">v2.0 300 DPI Lab</span>
-          </div>
-        </div>
-      </footer>
     </main>
   </div>
 

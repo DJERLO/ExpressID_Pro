@@ -502,15 +502,16 @@ function updateStageZoom(newZoom) {
 
 // Setup Draggable Canvas Panning
 function setupCanvasPanning() {
-    const stage = document.querySelector('.preview-stage');
     const canvas = $('previewCanvas');
-    if (!stage || !canvas) return;
+    if (!canvas) return;
+
+    // Set initial cursor state on canvas
+    canvas.style.cursor = 'grab';
 
     const startPan = (clientX, clientY) => {
         state.isPanning = true;
         state.startX = clientX - state.panX;
         state.startY = clientY - state.panY;
-        stage.style.cursor = 'grabbing';
         canvas.style.cursor = 'grabbing';
     };
 
@@ -524,37 +525,36 @@ function setupCanvasPanning() {
     const endPan = () => {
         if (!state.isPanning) return;
         state.isPanning = false;
-        stage.style.cursor = 'grab';
         canvas.style.cursor = 'grab';
     };
 
-    // Mouse Events
-    stage.addEventListener('mousedown', (e) => {
-        // Only trigger pan on left click and if clicking stage or canvas directly
+    // Mouse Events - attached strictly to canvas
+    canvas.addEventListener('mousedown', (e) => {
+        // Only trigger pan on left click
         if (e.button !== 0) return;
         startPan(e.clientX, e.clientY);
     });
 
-    window.addEventListener('mousemove', (e) => {
+    canvas.addEventListener('mousemove', (e) => {
         movePan(e.clientX, e.clientY);
     });
 
-    window.addEventListener('mouseup', endPan);
+    canvas.addEventListener('mouseup', endPan);
 
-    // Touch Events for Mobile / Tablets
-    stage.addEventListener('touchstart', (e) => {
+    // Touch Events for Mobile / Tablets - attached strictly to canvas
+    canvas.addEventListener('touchstart', (e) => {
         if (e.touches.length === 1) {
             startPan(e.touches[0].clientX, e.touches[0].clientY);
         }
-    }, { passive: true });
+    }, { passive: false });
 
-    window.addEventListener('touchmove', (e) => {
+    canvas.addEventListener('touchmove', (e) => {
         if (e.touches.length === 1) {
             movePan(e.touches[0].clientX, e.touches[0].clientY);
         }
-    }, { passive: true });
+    }, { passive: false });
 
-    window.addEventListener('touchend', endPan);
+    canvas.addEventListener('touchend', endPan);
 
     // Reset pan when clicking 'Fit' (Zoom Reset)
     const btnReset = $('stageZoomReset');
@@ -699,7 +699,7 @@ function init() {
         }
     }
 
-    $('currentYear').textContent = new Date().getFullYear();
+    // $('currentYear').textContent = new Date().getFullYear();
     $('removeBgBtn').onclick = handleRemoveBackground;
     $('resetImageBtn').onclick = handleResetImage;
 
@@ -835,6 +835,7 @@ function init() {
     initSignaturePad();
     renderButtons();
     renderSizeList();
+    setupExportDropdown();
     draw()
 }
 function selectPreset(k) {
@@ -1383,6 +1384,14 @@ function draw() {
         ctx.restore();
     });
 }
+
+/**
+ *  Get current timestamp
+ * @returns {string}
+ */
+function getTimestamp() {
+    return new Date().toISOString().slice(0, 19).replace(/[:T]/g, '_');
+}
 async function downloadPNG() {
     let canvas = document.getElementById('previewCanvas');
     let margin = +(document.getElementById('margin')?.value || 0.25) * DPI;
@@ -1390,13 +1399,14 @@ async function downloadPNG() {
     let pages = layoutPhotos(canvas.width, canvas.height, margin, spacing);
 
     let originalPage = state.currentPage;
+    const timestamp = getTimestamp();
 
     // Single page: Direct PNG download
     if (pages.length === 1) {
         state.currentPage = 0;
         draw();
         let a = document.createElement('a');
-        a.download = btoa(canvas.toDataURL('image/png'));
+        a.download = `photo-layout_${timestamp}.png`;
         a.href = canvas.toDataURL('image/png');
         a.click();
         return;
@@ -1424,7 +1434,7 @@ async function downloadPNG() {
     // Generate zip archive and trigger download
     const zipBlob = await zip.generateAsync({ type: "blob" });
     const a = document.createElement('a');
-    a.download = btoa(zipBlob);
+    a.download = `photo-layout_${timestamp}.png`;
     a.href = URL.createObjectURL(zipBlob);
     a.click();
 
@@ -1460,7 +1470,8 @@ function downloadPDF() {
     state.currentPage = originalPage;
     draw();
 
-    pdf.save(pdf.output('bloburl'));
+    const timestamp = getTimestamp();
+    pdf.save(`photo-layout_${timestamp}.pdf`);
 }
 function printCanvas() {
     let [wi, hi] = papers[state.paper];
@@ -1881,4 +1892,31 @@ function drawPhotoOverlays(ctx, photoX, photoY, photoWidth, photoHeight) {
 
             ctx.drawImage(sigCanvas, sigX, sigY, sigWidth, sigHeight);
         }
+}
+function setupExportDropdown() {
+    const dropdown = document.querySelector('.dropdown');
+    const toggleBtn = document.getElementById('exportDropdownBtn');
+    const pngBtn = document.getElementById('downloadPng');
+    const pdfBtn = document.getElementById('downloadPdf');
+
+    if (!dropdown || !toggleBtn) return;
+
+    // Toggle dropdown open/close state
+    toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('open');
+    });
+
+    // Close menu when clicking outside
+    window.addEventListener('click', () => {
+        dropdown.classList.remove('open');
+    });
+
+    // Close menu after choosing an export option
+    if (pngBtn) {
+        pngBtn.addEventListener('click', () => dropdown.classList.remove('open'));
+    }
+    if (pdfBtn) {
+        pdfBtn.addEventListener('click', () => dropdown.classList.remove('open'));
+    }
 }
