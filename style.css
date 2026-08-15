@@ -108,12 +108,34 @@ button {
     overflow: hidden
 }
 
+button,
+.btn {
+    font: inherit;
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
+    color: var(--text);
+    border-radius: 14px;
+    padding: 11px 13px;
+    cursor: pointer;
+    transition: 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+    min-height: 44px;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none; /* Ginagawang malinis ang anchor tags <a> */
+    user-select: none;
+    box-sizing: border-box;
+}
+
 /* Center icons and text nicely in all buttons */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+}
+
+.btn:hover{
+    transform: scale(1.01) !important;
 }
 
 /* Default icon sizing inside standard action buttons */
@@ -687,6 +709,7 @@ input[type=range] {
 .dropdown {
     position: relative;
     display: inline-block;
+    flex-grow: 1;
 }
 
 .dropdown-toggle .arrow-icon {
@@ -1298,4 +1321,66 @@ canvas#previewCanvas:active {
 
 .pkg-row-accordion.open .pkg-row-body {
     display: grid;
+}
+
+/* Modal Backdrop & Container */
+.modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    color: #000;
+}
+
+.modal.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+}
+
+.modal-content {
+    position: relative;
+    background: var(--bg-card, #ffffff);
+    padding: 24px;
+    border-radius: 16px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    z-index: 1001;
+}
+
+/* Icon & Buttons */
+.support-icon {
+    font-size: 44px;
+    color: #ff4b2b;
+    margin-bottom: 8px;
+}
+
+.btn-support {
+    background: var(--gradient3);
+    color: #fff !important;
+    font-weight: 600;
+    padding: 11px 13px;
+    border-radius: 14px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.btn-support:hover {
+    box-shadow: 0 4px 12px rgba(255, 65, 108, 0.35);
 }

@@ -220,7 +220,7 @@
 
           <!-- Dropdown: Export As (PNG / PDF) -->
           <div class="dropdown">
-            <button type="button" class="btn btn-outline-light dropdown-toggle" id="exportDropdownBtn">
+            <button type="button" class="btn btn-outline-light dropdown-toggle" id="exportDropdownBtn" style="width: 100%;">
               <span class="material-symbols-outlined">download</span>
               <span>Export As</span>
               <span class="material-symbols-outlined arrow-icon">expand_more</span>
@@ -294,38 +294,55 @@
     </div>
   </div>
 
+  <!-- Post-Export Support Modal -->
+  <div id="supportModal" class="modal" inert>
+      <div class="modal-backdrop"></div>
+      <div class="modal-content text-center">
+          <span class="material-symbols-outlined support-icon">local_cafe</span>
+          <h3>File ready! Enjoying the tool?</h3>
+          <p>This layout tool is 100% free to use. If it saved you time today, consider buying me a coffee or leaving a small tip!</p>
+          
+          <div class="modal-actions">
+              <a href="https://sociabuzz.com/djerlo/tribe" target="_blank" rel="noopener noreferrer" onclick="closeSupportModal()" class="btn btn-support full">
+                  <span class="material-symbols-outlined">favorite</span> Show me some love</span>
+              </a>
+              <button type="button" class="btn btn-danger close-support full">
+                  Maybe Next Time
+              </button>
+          </div>
+      </div>
+  </div>
+
   <!-- Custom Rush ID Package Creator Modal -->
-  <!-- Custom Package Modal -->
-<div id="addPackageModal" class="crop-modal" inert role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-  <div class="crop-panel" style="max-width: 520px;">
-    <h3 id="modalTitle" style="margin-top:0;">Create Custom Package</h3>
-    
-    <label style="display:block; margin-bottom: 12px;">Package Name
-      <input type="text" id="customPkgName" placeholder="e.g. Student Rush Pack" style="width:100%; margin-top:4px;" />
-    </label>
+  <div id="addPackageModal" class="crop-modal" inert role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="crop-panel" style="max-width: 520px;">
+      <h3 id="modalTitle" style="margin-top:0;">Create Custom Package</h3>
+      
+      <label style="display:block; margin-bottom: 12px;">Package Name
+        <input type="text" id="customPkgName" placeholder="e.g. Student Rush Pack" style="width:100%; margin-top:4px;" />
+      </label>
 
-    <!-- Quick Add Preset Toolbar -->
-    <label style="margin-bottom:6px; display:block;">Quick-Add Presets:</label>
-    <div id="modalPresetToolbar" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;">
-      <!-- Dynamic preset buttons land here -->
-    </div>
+      <!-- Quick Add Preset Toolbar -->
+      <label style="margin-bottom:6px; display:block;">Quick-Add Presets:</label>
+      <div id="modalPresetToolbar" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;">
+        <!-- Dynamic preset buttons land here -->
+      </div>
 
-    <!-- Container for dynamic row items -->
-    <div id="customPkgItemsContainer" style="max-height: 260px; overflow-y: auto; padding-right: 4px;">
-      <!-- Dynamic package item rows land here -->
-    </div>
+      <!-- Container for dynamic row items -->
+      <div id="customPkgItemsContainer" style="max-height: 260px; overflow-y: auto; padding-right: 4px;">
+        <!-- Dynamic package item rows land here -->
+      </div>
 
-    <button type="button" id="addPkgItemRowBtn" class="btn btn-outline-secondary full" style="margin-top: 8px;">
-      <span class="material-symbols-outlined">add</span> Add Custom Size Row
-    </button>
+      <button type="button" id="addPkgItemRowBtn" class="btn btn-outline-secondary full" style="margin-top: 8px;">
+        <span class="material-symbols-outlined">add</span> Add Custom Size Row
+      </button>
 
-    <div class="idcard-actions" style="margin-top: 18px;">
-      <button type="button" id="cancelAddPackageBtn" class="btn btn-secondary">Cancel</button>
-      <button type="button" id="saveCustomPackageBtn" class="btn btn-primary">Save Package</button>
+      <div class="idcard-actions" style="margin-top: 18px;">
+        <button type="button" id="cancelAddPackageBtn" class="btn btn-secondary">Cancel</button>
+        <button type="button" id="saveCustomPackageBtn" class="btn btn-primary">Save Package</button>
+      </div>
     </div>
   </div>
-</div>
-
   <script type="module" src="script.js"></script>
 </body>
 </html>

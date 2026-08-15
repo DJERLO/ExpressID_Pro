@@ -714,7 +714,13 @@ function init() {
         state.currentPage++;
         draw();
     };
+    document.querySelector('.modal-backdrop').onclick = () => {
+        closeSupportModal();
+    };
+    document.querySelector('.close-support').onclick = () => {
+        closeSupportModal();
 
+    };
     ['photoWidth', 'photoHeight', 'unit'].forEach(id => {
         $(id).addEventListener('input', () => {
             if (state.cropper) {
@@ -1385,6 +1391,28 @@ function draw() {
     });
 }
 
+// Modal Control Functions
+function showSupportModal() {
+    const modal = document.getElementById('supportModal');
+    if (!modal) return;
+    
+    // Slight delay so the browser download popup/trigger happens first
+    setTimeout(() => {
+        modal.classList.add('open');
+        modal.removeAttribute('inert');
+    }, 600);
+}
+
+function closeSupportModal() {
+    const modal = document.getElementById('supportModal');
+    if (!modal) return;
+    
+    modal.classList.remove('open');
+    modal.setAttribute('inert', '');
+}
+
+
+
 /**
  *  Get current timestamp
  * @returns {string}
@@ -1409,6 +1437,7 @@ async function downloadPNG() {
         a.download = `photo-layout_${timestamp}.png`;
         a.href = canvas.toDataURL('image/png');
         a.click();
+        showSupportModal();
         return;
     }
 
@@ -1437,6 +1466,7 @@ async function downloadPNG() {
     a.download = `photo-layout_${timestamp}.png`;
     a.href = URL.createObjectURL(zipBlob);
     a.click();
+    showSupportModal();
 
     // Clean up memory URL object
     setTimeout(() => URL.revokeObjectURL(a.href), 10000);
@@ -1472,6 +1502,7 @@ function downloadPDF() {
 
     const timestamp = getTimestamp();
     pdf.save(`photo-layout_${timestamp}.pdf`);
+    showSupportModal();
 }
 function printCanvas() {
     let [wi, hi] = papers[state.paper];
@@ -1562,6 +1593,8 @@ function printCanvas() {
         </html>
     `);
     w.document.close();
+
+    showSupportModal();
 }
 init();
 
