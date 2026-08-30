@@ -448,6 +448,9 @@ let state = {
         qty: 4,
         label: "2 x 2"
     }],
+    photoBorderWidth: 5,
+    photoBorderColor: '#000000',
+    photoBorderStyle: 'solid',
     image: null,
     cropper: null,
     flip: 1,
@@ -771,7 +774,21 @@ function init() {
     ;
     const debouncedDraw = debounce(draw, 50);
 
-    ['margin', 'spacing', 'brightness', 'contrast', 'zoom', 'landscape', 'guides', 'labels', 'borders', 'customPaperWidth', 'customPaperHeight'].forEach(id => {
+    [
+        'margin', 
+        'spacing', 
+        'brightness', 
+        'contrast', 
+        'zoom', 
+        'landscape', 
+        'guides', 
+        'labels', 
+        'borders', 
+        'borderWidth', 
+        'borderColor',  
+        'borderStyle',
+        'customPaperWidth', 
+        'customPaperHeight'].forEach(id => {
         $(id).addEventListener('input', debouncedDraw);
     });
     $('zoom').oninput = e => {
@@ -813,6 +830,9 @@ function init() {
     $('contrast').oninput = e => $('contrastValue').textContent = e.target.value + '%';
     $('margin').oninput = e => $('marginValue').textContent = (+e.target.value).toFixed(2) + ' in';
     $('spacing').oninput = e => $('spacingValue').textContent = (+e.target.value).toFixed(2) + ' in';
+    $('borderColor').oninput = e => state.photoBorderColor = e.target.value;
+    $('borderWidth').oninput = e => state.photoBorderWidth = e.target.value;
+    $('borderStyle').onclick = e => state.photoBorderStyle = e.target.value;
     $('addSize').onclick = addSize;
     $('rotate').onclick = () => {
         state.rotation = (state.rotation + 90) % 360;
@@ -1317,9 +1337,63 @@ function draw() {
         }
 
         if ($('borders')?.checked) {
-            ctx.strokeStyle = side === 'front' ? '#00e5ff' : '#9dff57';
-            ctx.lineWidth = 8;
-            ctx.strokeRect(x, y, w, h);
+            const borderWidth = Number(state.photoBorderWidth) || 0;
+            
+            if (borderWidth > 0 && state.photoBorderStyle !== 'none') {
+                ctx.save();
+                ctx.strokeStyle = state.photoBorderColor;
+                ctx.lineWidth = borderWidth;
+
+                switch (state.photoBorderStyle) {
+                    case 'dotted':
+                        // Creates a dotted pattern based on line width
+                        ctx.setLineDash([borderWidth, borderWidth]);
+                        ctx.strokeRect(x, y, w, h);
+                        break;
+
+                    case 'dashed':
+                        // Standard dashed pattern
+                        ctx.setLineDash([borderWidth * 3, borderWidth * 2]);
+                        ctx.strokeRect(x, y, w, h);
+                        break;
+
+                    case 'double': {
+                        // Draws two thin parallel lines
+                        ctx.setLineDash([]);
+                        const innerOffset = borderWidth / 3;
+                        
+                        // Outer line
+                        ctx.lineWidth = innerOffset;
+                        ctx.strokeRect(x, y, w, h);
+                        
+                        // Inner line
+                        ctx.strokeRect(
+                            x + innerOffset * 2, 
+                            y + innerOffset * 2, 
+                            w - innerOffset * 4, 
+                            h - innerOffset * 4
+                        );
+                        break;
+                    }
+
+                    case 'inset':
+                    case 'outset':
+                    case 'groove':
+                    case 'ridge':
+                        // Fallback to solid line for 3D styles on canvas
+                        ctx.setLineDash([]);
+                        ctx.strokeRect(x, y, w, h);
+                        break;
+
+                    case 'solid':
+                    default:
+                        ctx.setLineDash([]);
+                        ctx.strokeRect(x, y, w, h);
+                        break;
+                }
+
+                ctx.restore();
+            }
         }
 
         ctx.fillStyle = 'rgba(8,12,31,.75)';
@@ -1381,9 +1455,63 @@ function draw() {
             }
 
             if ($('borders')?.checked) {
-                ctx.strokeStyle = '#000000';
-                ctx.lineWidth = 10;
-                ctx.strokeRect(it.x, it.y, it.w, it.h);
+                const borderWidth = Number(state.photoBorderWidth) || 0;
+                
+                if (borderWidth > 0 && state.photoBorderStyle !== 'none') {
+                    ctx.save();
+                    ctx.strokeStyle = state.photoBorderColor;
+                    ctx.lineWidth = borderWidth;
+
+                    switch (state.photoBorderStyle) {
+                        case 'dotted':
+                            // Creates a dotted pattern based on line width
+                            ctx.setLineDash([borderWidth, borderWidth]);
+                            ctx.strokeRect(it.x, it.y, it.w, it.h);
+                            break;
+
+                        case 'dashed':
+                            // Standard dashed pattern
+                            ctx.setLineDash([borderWidth * 3, borderWidth * 2]);
+                            ctx.strokeRect(it.x, it.y, it.w, it.h);
+                            break;
+
+                        case 'double': {
+                            // Draws two thin parallel lines
+                            ctx.setLineDash([]);
+                            const innerOffset = borderWidth / 3;
+                            
+                            // Outer line
+                            ctx.lineWidth = innerOffset;
+                            ctx.strokeRect(it.x, it.y, it.w, it.h);
+                            
+                            // Inner line
+                            ctx.strokeRect(
+                                it.x + innerOffset * 2, 
+                                it.y + innerOffset * 2, 
+                                it.w - innerOffset * 4, 
+                                it.h - innerOffset * 4
+                            );
+                            break;
+                        }
+
+                        case 'inset':
+                        case 'outset':
+                        case 'groove':
+                        case 'ridge':
+                            // Fallback to solid line for 3D styles on canvas
+                            ctx.setLineDash([]);
+                            ctx.strokeRect(it.x, it.y, it.w, it.h);
+                            break;
+
+                        case 'solid':
+                        default:
+                            ctx.setLineDash([]);
+                            ctx.strokeRect(it.x, it.y, it.w, it.h);
+                            break;
+                    }
+
+                    ctx.restore();
+                }
             }
         }
 
