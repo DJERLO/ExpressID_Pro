@@ -83,7 +83,7 @@ const config = {
         const textEl = document.getElementById('loader-text');
         const barEl = document.getElementById('loader-progress-bar');
         
-        if (textEl) textEl.textContent = `Downloading AI Assets (${key}...): ${percent}%`;
+        if (textEl) textEl.textContent = `Processing (${key}...): ${percent}%`;
         if (barEl) barEl.style.width = `${percent}%`;
     }
 };
