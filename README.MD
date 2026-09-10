@@ -1,66 +1,87 @@
-# 📸 ExpressID Pro
+# ExpressID Pro - Client-Side ID Photo Engine & Automated Print Matrix Generator
 
-> **Print-Ready ID Photo & Layout Engine**
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Privacy First](https://img.shields.io/badge/Privacy-100%25%20Client--Side-green.svg)](#-privacy--security)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black.svg)](https://express-id-pro.vercel.app)
 
-ExpressID Pro is a lightweight, web-based photo layout engine designed to quickly crop, format, and prepare ID photos and print matrices for standard photo papers. Built with modern UI glassmorphism and real-time preview canvas scaling.
-
-## 🎯 Purpose & Motivation
-
-**ExpressID Pro** was created to solve a real-world operational bottleneck at **4J's Grosari**, our family-owned sari-sari store. 
-
-In our day-to-day operations, serving customers who come in to buy daily necessities while simultaneously handling rush ID photo requests was a major challenge. Our old workflow was painfully tedious and multi-stepped:
-1. Uploading customer photos to third-party tools like **remove.bg** to erase backgrounds
-2. Importing the photos into **Microsoft Word** or **Canva**.
-3. Manually tweaking image dimensions, margins, and grid alignments for printing.
-
-This manual process was time-consuming and frequently resulted in spacing errors or awkward paper waste during printing.
-
-To streamline our business, 
-
-**ExpressID Pro** was built as a single, unified web engine. It combines background removal, smart cropping ratios (1x1, 2x2, Passport, Visa, and custom combo packages), digital signatures, and automated paper-grid printing layouts into a seamless, single-page workflow —allowing us to produce error-free rush ID prints in seconds while keeping store operations running smoothly.
-
-## ✨ Features
-
-* ✂️ **Smart Crop & ID Cards:** Independent front/back ID cropping, aspect ratio locking, rotation, and horizontal flips.
-* 📦 **Preset Packages & Sizes:** Includes pre-configured rush packages (Package A–E) and standard photo dimensions (1x1, 2x2, Passport, Visa, Wallet, A4, etc.).
-* 🖨️ **Dynamic Page Grid Layout:** Multi-page canvas rendering with automatic pagination and customizable margin/spacing controls.
-* 🔍 **Stage Zoom Controls:** Scalable live-preview stage with zoom controls, wheel zoom, and fit-to-screen reset.
-* ✍️ **Custom Overlays:** Live full-name banner text overlay and interactive digital signature pad.
-* 🤖 **AI Background Removal:** Integrated single-click background removal (requires internet connection).
-* 📥 **Export Options:** High-resolution export options for **PNG (ZIP for multi-page)**, **PDF**, and direct browser **Print**.
+**ExpressID Pro** is a fast, web-based photo layout engine designed to crop, format, and generate print-ready ID photo matrix sheets for standard photo paper (4R, A4, etc.). Built with vanilla JavaScript, HTML5 Canvas, and modern glassmorphism UI, it automates the entire workflow without requiring server-side storage or heavy graphic design software.
 
 ---
 
-## 🚀 Live Demo
+## 🎯 Purpose & Story
 
-Check out the live application hosted on GitHub Pages:  
+ExpressID Pro was originally built to solve an operational bottleneck at **4J's Grosari**, our family-owned business. Handling customer transactions while manually cropping ID photos in external background removers and manually aligning them in Microsoft Word or Photoshop was slow and prone to paper waste.
 
+What started as an in-house micro-utility has evolved into a fully featured, privacy-first tool used by small print shop operators, freelancers, students, and job seekers to produce print-ready ID photo layouts in under 30 seconds.
 
 ---
 
-## 🛠️ Built With
+## ✨ Key Features
 
-* **HTML5 Canvas / CSS3** (Vanilla JS architecture & Glassmorphic UI)
-* [Cropper.js](https://github.com/fengyuanchen/cropperjs) – Image cropping engine
-* [jsPDF](https://github.com/parallax/jsPDF) – Client-side PDF generation
-* [JSZip](https://github.com/Stuk/jszip) – Multi-page PNG archive compression
-* [@imgly/background-removal](https://www.npmjs.com/package/@imgly/background-removal) – AI background removal engine
+* ✂️ **Smart Crop & ID Card Specs:** Locks aspect ratios for standard ID dimensions (1x1, 2x2, Passport, Visa, Wallet size, Rush ID packages) with rotation and flip controls.
+* 🤖 **Client-Side AI Background Removal:** Built-in background removal running directly in the browser via `@imgly/background-removal`.
+* 🖨️ **Dynamic Print Matrix Layout:** Automatically tiles cropped images onto standard photo paper dimensions (4R, A4, etc.) with custom margin, padding, and spacing controls.
+* ✍️ **Custom Overlays & Signatures:** Interactive digital signature pad integration and name banner overlays for formal identity documents.
+* 🔍 **Interactive Canvas Stage:** Live scaling stage with smooth zoom controls, wheel scaling, and reset tools.
+* 📥 **Multi-Format Export:** Instant export to print-ready **PDF**, high-res **PNG**, or bundled **ZIP archives** for multi-page jobs.
+
+---
+
+## 🔒 Privacy & Security First
+
+Biometric and personal photos should never sit on an unverified server. **ExpressID Pro operates 100% client-side**:
+
+* **Zero Cloud Uploads:** All image cropping, canvas calculations, background processing, and PDF exports are handled inside your web browser.
+* **No Database Storage:** No photos, signatures, or personal data ever touch an external backend database or cloud storage bucket.
+
+---
+
+## 🛠️ Tech Stack
+
+* **Frontend:** HTML5, CSS3 (Glassmorphism), Vanilla JavaScript ES6+
+* **Image Processing Engine:** [Cropper.js](https://github.com/fengyuanchen/cropperjs) & HTML5 Canvas API
+* **In-Browser AI Processing:** [@imgly/background-removal](https://www.npmjs.com/package/@imgly/background-removal)
+* **Document & Archive Generation:** [jsPDF](https://github.com/parallax/jsPDF) & [JSZip](https://github.com/Stuk/jszip)
+* **Hosting:** Vercel
+
+---
+
+## 🚀 Live Demo & LLM Context
+
+* **Live Web App:** [https://express-id-pro.vercel.app](https://express-id-pro.vercel.app)
+* **AI / LLM Search File:** [https://express-id-pro.vercel.app/llms.txt](https://express-id-pro.vercel.app/llms.txt)
 
 ---
 
 ## 💻 Local Setup & Development
 
-ExpressID Pro is a web application, so you'll need a web browser to view and interact with the app.
-
 ### 📦 Installation
 
-1. Clone the repository: `git clone https://github.com/DJERLO/ExpressID_Pro.git`
-2. Navigate to the project directory: `cd ExpressID-Pro`
-3. Install dependencies: `npm install`
-4. Start the development server: `npm run dev`
+1. Clone the repository:
+   ```bash
+   git clone [https://github.com/DJERLO/ExpressID_Pro.git](https://github.com/DJERLO/ExpressID_Pro.git)
+    ```
+
+2. Navigate to the project directory:
+    ```bash
+    cd ExpressID_Pro
+    ```
+
+
+3. Install dependencies:
+    ```bash
+    npm install
+    ```
+
+4. Start the local development server:
+    ```bash
+    npm run dev
+    ```
 ---
+
 ## 📝 License
+```
+Distributed under the MIT License. See `LICENSE` for more information.
 
-MIT License
-
----
+Copyright (c) 2026 Jerlo F. De Leon
+```
