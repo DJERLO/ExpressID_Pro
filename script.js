@@ -1398,15 +1398,6 @@ function draw() {
                         break;
                     }
 
-                    case 'inset':
-                    case 'outset':
-                    case 'groove':
-                    case 'ridge':
-                        // Fallback to solid line for 3D styles on canvas
-                        ctx.setLineDash([]);
-                        ctx.strokeRect(x, y, w, h);
-                        break;
-
                     case 'solid':
                     default:
                         ctx.setLineDash([]);
