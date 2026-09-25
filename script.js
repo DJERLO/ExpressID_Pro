@@ -733,6 +733,23 @@ function init() {
         });
     });
 
+    ['portraitBtn', 'landscapeBtn'].forEach(id => {
+        $(id).addEventListener('click', (e) => {
+            const isLandscape = e.currentTarget.id === 'landscapeBtn';
+            
+            // Sync the hidden checkbox state used by draw() and print Canvas functions
+            const checkbox = $('landscape');
+            if (checkbox) checkbox.checked = isLandscape;
+
+            // Toggle visual active status between buttons
+            $('portraitBtn').classList.toggle('active', !isLandscape);
+            $('landscapeBtn').classList.toggle('active', isLandscape);
+
+            // Redraw canvas
+            draw();
+        });
+    });
+
     Object.keys(presets).forEach(k => {
         let b = document.createElement('button');
         b.type = 'button';
@@ -781,7 +798,6 @@ function init() {
         'contrast', 
         'zoom', 
         'landscape', 
-        'guides', 
         'labels', 
         'borders', 
         'borderWidth', 
@@ -794,6 +810,7 @@ function init() {
     $('zoom').oninput = e => {
         const val = +e.target.value;
         $('zoomValue').textContent = val + '%';
+
 
         if (state.cropper) {
             // Get full container dimensions of the cropper
@@ -943,7 +960,12 @@ function setupUpload() {
     }
     ));
     dz.addEventListener('drop', e => loadFile(e.dataTransfer.files[0]));
-    fi.onchange = e => loadFile(e.target.files[0]);
+    
+    fi.onchange = e => {
+        loadFile(e.target.files[0]);
+        $('zoom').value = 100;
+        $('zoomValue').textContent = '100%';
+    };
     dz.onkeydown = e => {
         if (e.key === 'Enter' || e.key === ' ')
             fi.click()
@@ -1376,15 +1398,6 @@ function draw() {
                         break;
                     }
 
-                    case 'inset':
-                    case 'outset':
-                    case 'groove':
-                    case 'ridge':
-                        // Fallback to solid line for 3D styles on canvas
-                        ctx.setLineDash([]);
-                        ctx.strokeRect(x, y, w, h);
-                        break;
-
                     case 'solid':
                     default:
                         ctx.setLineDash([]);
@@ -1440,12 +1453,6 @@ function draw() {
                 ctx.fillText('Upload photo', it.x + it.w / 2, it.y + it.h / 2);
             }
 
-            if ($('guides')?.checked) {
-                ctx.strokeStyle = 'rgba(255,43,214,.65)';
-                ctx.setLineDash([18, 12]);
-                ctx.strokeRect(it.x - 8, it.y - 8, it.w + 16, it.h + 16);
-                ctx.setLineDash([]);
-            }
 
             if ($('labels')?.checked) {
                 ctx.fillStyle = 'rgba(124,60,255,.95)';

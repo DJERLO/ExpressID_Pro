@@ -130,8 +130,8 @@
       <section class="card">
           <h2>Image Processing</h2>
           <div class="crop-wrap"><img id="cropImage" alt="Crop source"></div>
-          <label class="range-label">Zoom <b id="zoomValue" aria-hidden="true">100%</b>
-            <input id="zoom" type="range" min="20" max="100" value="100" aria-label="Zoom level percentage">
+          <label class="range-label">Zoom <b id="zoomValue" aria-hidden="true">0%</b>
+            <input id="zoom" type="range" min="20" max="100" value="0" aria-label="Zoom level percentage">
           </label>
           <div class="toolbar">
             <button id="removeBgBtn" class="btn btn-gradient-1 full"><span class="material-symbols-outlined">auto_awesome</span>Remove Background</button> 
@@ -209,6 +209,22 @@
         <button id="addIdCards" class="primary full">Add ID card layout</button>
         <span class="idcard-badge">✦ Supports CR80, CR79, CR100 & custom layouts</span>
       </section>
+
+      <section class="card">
+        <h2>Paper Orientation</h2>
+        <input id="landscape" type="checkbox" hidden>
+        <div id="page-orientation" class="button-grid idcard-options">
+          <button id="portraitBtn" class="btn btn-outline-secondary active" type="button">
+            <span class="material-symbols-outlined">crop_portrait</span>
+            Portrait
+          </button>
+          <button id="landscapeBtn" class="btn btn-outline-secondary" type="button">
+            <span class="material-symbols-outlined">crop_landscape</span>
+            Landscape
+          </button>
+        </div>
+      </section>
+      
       <section class="card">
         <h2>Paper Size</h2>
         <div id="paperGrid" class="button-grid">
@@ -219,7 +235,9 @@
           <label>Custom Height (in)<input id="customPaperHeight" type="number" step="0.01" min="1" value="11"></label>
         </div>
         <button id="applyCustomPaper" class="primary full">Apply Custom Paper</button>
+        <span class="idcard-badge">✦ Supports US Letter, A4, A5, Legal & custom sizes</span>
       </section>
+
       <section class="card">
         <h2>Page Settings</h2>
         <div class="idcard-options">
@@ -247,18 +265,11 @@
             <option value="dotted">Dotted</option>
             <option value="dashed">Dashed</option>
             <option value="double">Double</option>
-            <option value="groove">Groove</option>
-            <option value="ridge">Ridge</option>
-            <option value="inset">Inset</option>
-            <option value="outset">Outset</option>
-            <option value="none">None</option>
           </select>
         </label>
         <div class="idcard-options checks">
-          <label><input id="landscape" type="checkbox"> Landscape</label>
-          <label><input id="guides" type="checkbox" checked> Show Cutting Guides</label>
           <label><input id="labels" type="checkbox" checked> Show Labels</label>
-          <label><input id="borders" type="checkbox"> Show Photo Borders</label>
+          <label><input id="borders" type="checkbox" checked> Show Photo Borders</label>
         </div>
       </section>
       <section class="card">
