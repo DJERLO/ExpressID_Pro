@@ -382,14 +382,62 @@
       <span id="network-message">You are currently offline. Background removal requires an active internet connection.</span>
     </div>
   </div>
-  <!-- Loader Overlay -->
-  <div id="bg-loader" class="loader-overlay" role="status" aria-live="polite" style="display: none;" tabindex="-1" inert>
+  
+  <!-- AI Model Loader Overlay -->
+  <div
+    id="bg-loader"
+    class="loader-overlay"
+    role="status"
+    aria-live="polite"
+    style="display: none;"
+    tabindex="-1"
+    inert
+  >
+    <div class="loader-glow loader-glow-one"></div>
+    <div class="loader-glow loader-glow-two"></div>
+
     <div class="loader-content">
-        <div class="spinner" aria-hidden="true"></div>
-        <p id="loader-text">Loading AI Model Assets...</p>
-        <div class="progress-bar-container">
-            <div id="loader-progress-bar" style="width: 0%;" aria-hidden="true"></div>
-        </div>
+
+      <div class="loader-icon-wrap" aria-hidden="true">
+        <div class="loader-icon-ring"></div>
+
+        <span class="material-symbols-outlined loader-icon">
+          account_box
+        </span>
+      </div>
+
+      <div class="loader-eyebrow">
+        <span class="loader-status-dot"></span>
+        AI BACKGROUND ENGINE
+      </div>
+
+      <h2 class="loader-title">Preparing AI Tools</h2>
+
+      <p class="loader-description">
+        Loading the image processing engine for faster background removal.
+      </p>
+
+      <div class="loader-progress-info">
+        <span id="loader-text">Initializing AI model...</span>
+        <strong id="loader-percent">0%</strong>
+      </div>
+
+      <div
+        class="progress-bar-container"
+        role="progressbar"
+        aria-label="AI model loading progress"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
+      >
+        <div id="loader-progress-bar" aria-hidden="true"></div>
+      </div>
+
+      <p class="loader-footnote">
+        <span class="material-symbols-outlined">bolt</span>
+        This only happens when the AI assets need to be prepared.
+      </p>
+
     </div>
   </div>
 

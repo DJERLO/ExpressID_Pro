@@ -71,20 +71,81 @@ async function determineAppTier() {
 }
 
 const { device: selectedDevice, model: selectedModel } = await determineAppTier();
+let loaderMode = 'preload'; // 'preload' | 'remove-background';
+const loaderTitleEl = document.querySelector('.loader-title');
+const loaderDescriptionEl = document.querySelector('.loader-description');
+const textEl = document.getElementById('loader-text');
+const barEl = document.getElementById('loader-progress-bar');
+const percentEl = document.getElementById('loader-percent');
+const loaderFootnoteEl = document.querySelector('.loader-footnote');
+const progressContainer = document.querySelector('.progress-bar-container');
 
 const config = {
     device: selectedDevice,
     model: selectedModel,
     publicPath: `${window.location.origin}/dist/`,
     debug: false,
+/**
+ * Progress callback for the loader.
+ * @param {string} key - The key indicating the current stage of the loader.
+ * @param {number} current - The current progress value.
+ * @param {number} total - The total progress value.
+ * @returns {void} - No return value is expected.
+ * @example
+ * const config = {
+ *     progress: (key, current, total) => {
+ *         const percent = total
+ *             ? Math.round((current / total) * 100)
+ *             : 0;
+ *
+ *         // Update progress bar, text, and other UI elements here.
+ *     },
+ * };
+ */
     progress: (key, current, total) => {
-        const percent = total ? Math.round((current / total) * 100) : 0;
-        
-        const textEl = document.getElementById('loader-text');
-        const barEl = document.getElementById('loader-progress-bar');
-        
-        if (textEl) textEl.textContent = `Processing (${key}...): ${percent}%`;
-        if (barEl) barEl.style.width = `${percent}%`;
+        const percent = total
+            ? Math.round((current / total) * 100)
+            : 0;
+
+        if (loaderMode === 'remove-background') {
+            if (loaderTitleEl) {
+                loaderTitleEl.textContent = 'Removing Background';
+            }
+            if (loaderDescriptionEl) {
+                loaderDescriptionEl.textContent = 'This may take a few seconds depending on your device.';
+            }
+            if (textEl) {
+                textEl.textContent = 'Removing background...';
+            }
+            if (loaderFootnoteEl) {
+                loaderFootnoteEl.textContent = 'Note: Background removal is performed locally in your browser and does not upload your image to any server.';
+            }
+        } else {
+            if (loaderTitleEl) {
+                loaderTitleEl.textContent = 'Preparing AI Tools';
+            }
+            if (loaderDescriptionEl) {
+                loaderDescriptionEl.textContent = 'Loading the image processing engine for faster background removal.';
+            }
+            if (textEl) {
+                textEl.textContent = 'Preparing AI tools...';
+            }
+            if (loaderFootnoteEl) {
+                loaderFootnoteEl.textContent = 'Note: AI tools are being prepared locally in your browser.';
+            }
+        }
+
+        if (barEl) {
+            barEl.style.width = `${percent}%`;
+        }
+
+        if (percentEl) {
+            percentEl.textContent = `${percent}%`;
+        }
+
+        if (progressContainer) {
+            progressContainer.setAttribute('aria-valuenow', percent);
+        }
     }
 };
 
@@ -103,11 +164,13 @@ function debounce(func, wait) {
  */
 async function removePhotoBackground(imageSource) {
     const loader = document.getElementById('bg-loader');
+    
     if (loader) {
         loader.style.display = 'flex';
         loader.removeAttribute('inert');
     }
     try {
+        loaderMode = 'remove-background';
         const blob = await removeBackground(imageSource, config);
         return URL.createObjectURL(blob);
     } catch (error) {
@@ -117,6 +180,7 @@ async function removePhotoBackground(imageSource) {
         if (loader) {
             loader.style.display = 'none';
             loader.setAttribute('inert', '');
+            loaderMode = 'preload';
         }
     }
 }
