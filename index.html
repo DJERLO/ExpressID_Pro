@@ -38,8 +38,12 @@
   <meta property="twitter:title" content="ExpressID Pro — Print-Ready ID Photo & Layout Tool" />
   <meta property="twitter:description" content="Create print-ready 1x1, 2x2, visa and passport ID photos, ID card layouts, and custom print sheets directly in your browser." />
   <meta property="twitter:image" content="%VITE_APP_URL%screenshot1.png" />
-
-  <link rel="stylesheet" href="style.css" />
+  
+  <link rel="preload" href="style.css" as="style">
+  <link rel="stylesheet" href="style.css" media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="style.css">
+  </noscript>
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -129,7 +133,7 @@
 
       <section class="card">
           <h2>Image Processing</h2>
-          <div class="crop-wrap"><img id="cropImage" alt="Crop source"></div>
+          <div class="crop-wrap"><img id="cropImage" alt="Crop source" width="0" height="0"></div>
           <label class="range-label">Zoom <b id="zoomValue" aria-hidden="true">0%</b>
             <input id="zoom" type="range" min="20" max="100" value="0" aria-label="Zoom level percentage">
           </label>
@@ -490,6 +494,6 @@
       </div>
     </div>
   </div>
-  <script type="module" src="script.js"></script>
+  <script type="module" src="script.js" defer></script>
 </body>
 </html>

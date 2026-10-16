@@ -1,9 +1,6 @@
 import '@fontsource/material-symbols-outlined';
-import { removeBackground, preload } from '@imgly/background-removal';
 import 'cropperjs/dist/cropper.css';
 import  Cropper from 'cropperjs';
-import { jsPDF } from 'jspdf';
-import JSZip from 'jszip';
 
 async function getGpuInfo() {
     if (!('gpu' in navigator)) {
@@ -70,7 +67,16 @@ async function determineAppTier() {
     return { device: selectedDevice, model: selectedModel };
 }
 
-const { device: selectedDevice, model: selectedModel } = await determineAppTier();
+// Instead, set safe defaults initially:
+let selectedDevice = 'cpu';
+let selectedModel = 'isnet_quint8';
+
+// Run hardware tier detection asynchronously after page load
+determineAppTier().then(tier => {
+    selectedDevice = tier.device;
+    selectedModel = tier.model;
+});
+
 let loaderMode = 'preload'; // 'preload' | 'remove-background';
 const loaderTitleEl = document.querySelector('.loader-title');
 const loaderDescriptionEl = document.querySelector('.loader-description');
@@ -164,6 +170,7 @@ function debounce(func, wait) {
  */
 async function removePhotoBackground(imageSource) {
     const loader = document.getElementById('bg-loader');
+    const { removeBackground } = await import('@imgly/background-removal');
     
     if (loader) {
         loader.style.display = 'flex';
@@ -684,7 +691,6 @@ function setupStageZoom() {
  * Network Status Handler
  */
 function initNetworkListener() {
-    const loader = $('bg-loader');
     const modal = $('network-modal');
     const msg = $('network-message');
     const icon = $('network-icon');
@@ -704,24 +710,6 @@ function initNetworkListener() {
             icon.textContent = '⚡';
             msg.textContent = 'You are back online!';
 
-            if (loader) {
-                loader.style.display = 'flex';
-                loader.removeAttribute('inert');
-            }
-
-            // 2. Trigger preloading of AI background removal model assets
-            preload(config)
-            .then(() => {
-                console.log("Asset preloading succeeded");
-            })
-            .catch(err => {
-                console.log('Background preload skipped or failed:', err);
-            })
-            .finally(() => {
-                // 3. Hide the loader once preloading succeeds or fails
-                if (loader) loader.style.display = 'none';
-            });
-
             // Auto-hide the "Back Online" message after 3.5 seconds
             setTimeout(() => {
                 modal.classList.add('hidden');
@@ -740,33 +728,6 @@ function initNetworkListener() {
     }
 }
 function init() {
-    const loader = document.getElementById('bg-loader');
-    if (loader) {
-        loader.style.display = 'flex';
-        loader.removeAttribute('inert');
-    }
-    // Trigger preloading of AI background removal model assets in the background if online
-    if (navigator.onLine) {
-        preload(config)
-        .then(() => {
-            console.log("Asset preloading succeeded");
-        })
-        .catch(err => {
-            console.log('Background preload skipped or failed:', err);
-        })
-        .finally(() => {
-            // 3. Hide the loader once preloading succeeds or fails
-            if (loader) loader.style.display = 'none';
-        });
-    } else {
-        // Hide immediately if offline
-        if (loader) {
-            loader.style.display = 'none';
-            loader.setAttribute('inert', '');
-        }
-    }
-
-    // $('currentYear').textContent = new Date().getFullYear();
     $('removeBgBtn').onclick = handleRemoveBackground;
     $('resetImageBtn').onclick = handleResetImage;
 
@@ -1641,6 +1602,7 @@ async function downloadPNG() {
     }
 
     // Multiple pages: Package into ZIP file
+    const { default: JSZip } = await import('jszip');
     const zip = new JSZip();
     const folder = zip.folder("png_pages");
 
@@ -1670,11 +1632,12 @@ async function downloadPNG() {
     // Clean up memory URL object
     setTimeout(() => URL.revokeObjectURL(a.href), 10000);
 }
-function downloadPDF() {
+async function downloadPDF() {
     let [wi, hi] = papers[state.paper];
     if (document.getElementById('landscape')?.checked) [wi, hi] = [hi, wi];
 
     let orientation = wi > hi ? 'landscape' : 'portrait';
+    const { jsPDF } = await import('jspdf');
     let pdf = new jsPDF({
         orientation,
         unit: 'in',

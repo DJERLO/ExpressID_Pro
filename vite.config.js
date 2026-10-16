@@ -1,11 +1,53 @@
-import { defineConfig, loadEnv } from 'vite'; // 1. Added loadEnv here
+import { defineConfig, loadEnv } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const appUrl = env.VITE_APP_URL; // Example: http://localhost:5173 use .env file
+  const appUrl = env.VITE_APP_URL;
 
   return {
+    build: {
+      minify: 'oxc',
+      // Ensure CSS is also minified
+      cssMinify: true,
+      cssCodeSplit: true,
+      target: 'esnext',
+      chunkSizeWarningLimit: 1000,
+      rollupOptions: {
+        output: {
+          codeSplitting: true,
+          // Split heavy libraries into separate vendor chunks so main thread isn't blocked
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('@fontsource/material-symbols-outlined')) {
+                return 'vendor-fonts';
+              }
+              if (id.includes('cropperjs')) {
+                return 'vendor-cropper';
+              }
+              if (id.includes('jsPDF')) {
+                return 'vendor-jspdf';
+              }
+              if (id.includes('jszip')) {
+                return 'vendor-jszip';
+              }
+              if (id.includes('@imgly/background-removal')) {
+                return 'vendor-background-removal';
+              }
+              if (id.includes('onnxruntime-web')) {
+                return 'vendor-onnx';
+              }
+              return 'vendor-core';
+            }
+          },
+        },
+      },
+    },
+    esbuild: {
+      treeShaking: true,
+      target: 'esnext',
+      drop: ['console', 'debugger'],
+    },
     plugins: [
       VitePWA({
         registerType: 'autoUpdate',
@@ -67,43 +109,39 @@ export default defineConfig(({ mode }) => {
           ]
         },
         workbox: {
-          // Include heavy files like WASM/ONNX if you want them available offline, 
-          // though keep an eye on caching limits.
           globPatterns: [
-            '**/*.{js,css,html,ico,png,svg,wasm,onnx,json,bin,data,woff,woff2}',
+            '**/*.{js,css,html,ico,png,svg,wasm,onnx,json,bin,data,woff,woff2, webmanifest}',
             'dist/**/*'
           ],
           maximumFileSizeToCacheInBytes: 50 * 1024 * 1024,
-          
-          // Crucial for SPA routing on Vercel so offline reloads don't hit 404s
           navigateFallback: '/index.html',
           navigateFallbackDenylist: [/^\/api/],
-          
           runtimeCaching: [
             {
-              // Cache ExpressID models
-              urlPattern: /\/dist\/.*/i,
+              // Cache local font files served from /assets/
+              urlPattern: /\/assets\/.*\.woff2$/i,
               handler: 'CacheFirst',
               options: {
-                cacheName: 'imgly-models-cache',
+                cacheName: 'local-fonts-cache',
                 expiration: {
-                  maxEntries: 150,
-                  maxAgeSeconds: 60 * 60 * 24 * 30 // 30 Days
+                  maxEntries: 10,
+                  maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
                 },
                 cacheableResponse: {
                   statuses: [0, 200]
                 }
               }
             },
+            
             {
-              // Cache external assets or fonts if any
-              urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
+              // Lazy-cache model assets dynamically after user action
+              urlPattern: /\.(?:wasm|onnx|bin|data)$/i,
               handler: 'CacheFirst',
               options: {
-                cacheName: 'google-fonts-cache',
+                cacheName: 'expressid-ai-models',
                 expiration: {
-                  maxEntries: 10,
-                  maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+                  maxEntries: 20,
+                  maxAgeSeconds: 60 * 60 * 24 * 60 // 60 Days
                 },
                 cacheableResponse: {
                   statuses: [0, 200]
@@ -116,7 +154,6 @@ export default defineConfig(({ mode }) => {
     ],
     server: {
       headers: {
-        // Enables SharedArrayBuffer so WASM can use multi-threading across CPU cores
         'Cross-Origin-Opener-Policy': 'same-origin',
         'Cross-Origin-Embedder-Policy': 'require-corp',
       },
