@@ -1107,6 +1107,10 @@ canvas#previewCanvas:active {
     margin-top: 12px
 }
 
+.idcard-options.col-3 {
+    grid-template-columns: auto auto auto
+}
+
 .idcard-actions {
     display: flex;
     gap: 10px;

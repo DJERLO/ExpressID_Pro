@@ -363,6 +363,7 @@ function setupCustomPackageModal() {
                         <option ${unit==='inch'?'selected':''}>inch</option>
                         <option ${unit==='mm'?'selected':''}>mm</option>
                         <option ${unit==='cm'?'selected':''}>cm</option>
+                        <option ${unit==='px'?'selected':''}>px</option>
                     </select>
                 </label>
                 <label>Qty<input type="number" class="pkg-qty" min="1" value="${qty}" /></label>
@@ -546,7 +547,10 @@ let state = {
 const $ = id => document.getElementById(id);
 function toIn(v, u) {
     v = +v || 0;
-    return u === 'mm' ? v / 25.4 : u === 'cm' ? v / 2.54 : v
+    if (u === 'mm') return v / 25.4; // Millimeters
+    if (u === 'cm') return v / 2.54; // Centimeters
+    if (u === 'px') return v / DPI; // Pixels
+    return v; // by default inches
 }
 
 /**
@@ -808,7 +812,18 @@ function init() {
     }
     );
     $('applyCustomPaper').onclick = () => {
-        papers.Custom = [+$('customPaperWidth').value || 8.5, +$('customPaperHeight').value || 11];
+        const rawWidth = $('customPaperWidth').value;
+        const rawHeight = $('customPaperHeight').value;
+        const unit = $('customPaperUnit')?.value || 'inch';
+        if (!rawWidth || !rawHeight) {
+            alert('Please enter valid custom paper dimensions.');
+            return;
+        }
+        // Convert custom dimensions to inches based on selected unit (mm, cm, inch, px)
+        const widthInInches = unit === 'mm' ? rawWidth / 25.4 : unit === 'cm' ? rawWidth / 2.54 : unit === 'px' ? rawWidth / DPI: +rawWidth;
+        const heightInInches = unit === 'mm' ? rawHeight / 25.4 : unit === 'cm' ? rawHeight / 2.54 : unit === 'px' ? rawHeight / DPI: +rawHeight;
+
+        papers.Custom = [widthInInches, heightInInches];
         state.paper = 'Custom';
         renderButtons();
         draw()
@@ -829,7 +844,8 @@ function init() {
         'borderColor',  
         'borderStyle',
         'customPaperWidth', 
-        'customPaperHeight'].forEach(id => {
+        'customPaperHeight',
+        'customPaperUnit'].forEach(id => {
         $(id).addEventListener('input', debouncedDraw);
     });
     $('zoom').oninput = e => {
