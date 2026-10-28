@@ -1214,65 +1214,70 @@ function layoutPhotos(pw, ph, margin, spacing) {
     let pages = [];
     let page = [];
     let y = margin;
-    let x = margin;
-    let rowH = 0;
-    let row = [];
+    let currentRow = [];
+    let allRows = [];
 
-    function flushRow() {
-        if (!row.length) return;
-        let rowW = row.reduce((a, it) => a + it.w, 0) + spacing * (row.length - 1);
-        let offset = (pw - rowW) / 2;
-        row.forEach((it, idx) => {
-            it.x = offset + row.slice(0, idx).reduce((a, r) => a + r.w + spacing, 0);
+    // 1. Group items into rows based on available width and spacing
+    items.forEach(it => {
+        if (it.idPair || it.forceCenter) {
+            if (currentRow.length) {
+                allRows.push(currentRow);
+                currentRow = [];
+            }
+            allRows.push([it]);
+            return;
+        }
+
+        // Compute the maximum row width based on paper width and margins
+        let maxRowWidth = pw - (margin * 2);
+        let currentWidth = currentRow.reduce((a, r) => a + r.w, 0) + (spacing * currentRow.length);
+        
+        if (currentRow.length > 0 && (currentWidth + it.w + spacing > maxRowWidth)) {
+            allRows.push(currentRow);
+            currentRow = [];
+        }
+
+        currentRow.push(it);
+    });
+
+    if (currentRow.length) {
+        allRows.push(currentRow);
+    }
+
+    // 2. Compute the maximum row width to center narrower rows
+    let maxFullRowWidth = 0;
+    allRows.forEach(r => {
+        let rWidth = r.reduce((a, it) => a + it.w, 0) + spacing * (r.length - 1);
+        if (rWidth > maxFullRowWidth) maxFullRowWidth = rWidth;
+    });
+
+    // Compute the global left offset for centering rows that are narrower than the maximum row width
+    let globalLeftOffset = Math.max(margin, (pw - maxFullRowWidth) / 2);
+
+    // 3. Place items into pages while respecting margins and spacing
+    allRows.forEach(r => {
+        let rowHeight = Math.max(...r.map(item => item.h));
+
+        // Kung ang susunod na row ay lalampas na sa ilalim ng papel, gumawa ng bagong page
+        if (page.length > 0 && (y + rowHeight > ph - margin)) {
+            pages.push(page);
+            page = [];
+            y = margin; // Balik sa taas para sa bagong pahina
+        }
+
+        r.forEach((it, idx) => {
+            if (it.idPair || it.forceCenter) {
+                it.x = (pw - it.w) / 2 + (it.moveX || 0);
+            } else {
+                it.x = globalLeftOffset + r.slice(0, idx).reduce((a, item) => a + item.w + spacing, 0);
+            }
             it.y = y;
             page.push(it);
         });
-        y += rowH + spacing;
-        x = margin;
-        rowH = 0;
-        row = [];
-    }
 
-    function pushCentered(it) {
-        if (page.length || row.length) {
-            flushRow();
-            if (page.length) {
-                pages.push(page);
-                page = [];
-                y = margin;
-            }
-        }
-        it.x = (pw - it.w) / 2 + (it.moveX || 0);
-        it.y = (ph - it.h) / 2 + (it.moveY || 0);
-        it.x = Math.max(margin, Math.min(pw - margin - it.w, it.x));
-        it.y = Math.max(margin, Math.min(ph - margin - it.h, it.y));
-
-        page.push(it);
-        pages.push(page);
-        page = [];
-        y = margin;
-        x = margin;
-        rowH = 0;
-    }
-
-    items.forEach(it => {
-        if (it.idPair || it.forceCenter) {
-            pushCentered(it);
-            return;
-        }
-        if (x + it.w > pw - margin && row.length) flushRow();
-        if (y + it.h > ph - margin && page.length) {
-            flushRow();
-            pages.push(page);
-            page = [];
-            y = margin;
-        }
-        row.push(it);
-        x += it.w + spacing;
-        rowH = Math.max(rowH, it.h);
+        y += rowHeight + spacing;
     });
 
-    flushRow();
     if (page.length) pages.push(page);
 
     return pages.length ? pages : [[]];
