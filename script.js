@@ -1267,26 +1267,27 @@ function layoutPhotos(pw, ph, margin, spacing) {
         if (rWidth > maxFullRowWidth) maxFullRowWidth = rWidth;
     });
 
-    // Compute the global left offset for centering rows that are narrower than the maximum row width
-    let globalLeftOffset = Math.max(margin, (pw - maxFullRowWidth) / 2);
-
     // 3. Place items into pages while respecting margins and spacing
     allRows.forEach(r => {
         let rowHeight = Math.max(...r.map(item => item.h));
 
-        // Kung ang susunod na row ay lalampas na sa ilalim ng papel, gumawa ng bagong page
+        // Center each row independently.
+        let rowWidth = r.reduce((a, item) => a + item.w, 0) + spacing * (r.length - 1);
+        let rowOffset = (pw - rowWidth) / 2;
+
         if (page.length > 0 && (y + rowHeight > ph - margin)) {
             pages.push(page);
             page = [];
-            y = margin; // Balik sa taas para sa bagong pahina
+            y = margin;
         }
 
         r.forEach((it, idx) => {
             if (it.idPair || it.forceCenter) {
                 it.x = (pw - it.w) / 2 + (it.moveX || 0);
             } else {
-                it.x = globalLeftOffset + r.slice(0, idx).reduce((a, item) => a + item.w + spacing, 0);
+                it.x = rowOffset + r.slice(0, idx).reduce((a, item) => a + item.w + spacing, 0);
             }
+
             it.y = y;
             page.push(it);
         });
