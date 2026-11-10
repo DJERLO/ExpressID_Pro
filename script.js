@@ -1363,8 +1363,8 @@ function draw() {
     ctx.lineWidth = 2;
     ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
 
-    let margin = +($('margin')?.value || 0.25) * DPI;
-    let spacing = +($('spacing')?.value || 0.1) * DPI;
+    let margin = Number($('margin')?.value ?? 0.25) * DPI;
+    let spacing = Number($('spacing')?.value ?? 0.1) * DPI;
 
     let pages = layoutPhotos(canvas.width, canvas.height, margin, spacing);
 
